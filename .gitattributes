@@ -1,0 +1,4 @@
+# Normalize line endings to LF in the repo (clean checkouts on Linux deploy targets)
+* text=auto eol=lf
+*.png binary
+*.ico binary

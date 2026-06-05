@@ -1,0 +1,31 @@
+# --- secrets / machine-specific (NEVER commit) ---
+.env
+.env.*
+!.env.example
+corp-ca.pem
+
+# --- python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# --- world model / runtime artifacts ---
+carrix.db
+carrix.db-wal
+carrix.db-shm
+*.log
+carrix_trace.log
+
+# --- node / react ---
+ui/node_modules/
+ui/dist/
+npm-debug.log*
+
+# --- editors / OS ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

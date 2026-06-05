@@ -1,0 +1,91 @@
+{
+  "scenario": "t18_collision",
+  "description": "~400 containers discharge at Terminal T18 this afternoon (AIS+TOS), a trucker-appointment surge hits the same window (eModal), and the T18 yard blocks are already near-congested (TOS). No single source system connects these three facts.",
+  "terminal": "T18",
+  "as_of": "2026-06-04T09:00:00Z",
+  "focus_window": "12:00-16:00",
+  "windows": ["08:00-12:00", "12:00-16:00", "16:00-20:00"],
+  "thresholds": {
+    "discharge_surge": 300,
+    "block_utilization_warn": 0.85
+  },
+  "ais": {
+    "positions": [
+      {
+        "vessel_id": "V-MERIDIAN",
+        "name": "MV Meridian",
+        "lat": 33.74,
+        "lon": -118.21,
+        "speed_kn": 11.2,
+        "status": "inbound",
+        "destination_terminal": "T18",
+        "eta": "2026-06-04T12:30:00Z"
+      },
+      {
+        "vessel_id": "V-KESTREL",
+        "name": "MV Kestrel",
+        "lat": 33.71,
+        "lon": -118.27,
+        "speed_kn": 9.0,
+        "status": "anchored",
+        "destination_terminal": "T20",
+        "eta": "2026-06-04T18:00:00Z"
+      }
+    ],
+    "manifests": [
+      {
+        "vessel_id": "V-MERIDIAN",
+        "terminal": "T18",
+        "discharge_window": "12:00-16:00",
+        "discharge_count": 400,
+        "confirmed": false
+      },
+      {
+        "vessel_id": "V-KESTREL",
+        "terminal": "T20",
+        "discharge_window": "16:00-20:00",
+        "discharge_count": 120,
+        "confirmed": true
+      }
+    ]
+  },
+  "tos": {
+    "yard_blocks": [
+      {"block": "T18-A", "terminal": "T18", "capacity": 120, "occupied": 110},
+      {"block": "T18-B", "terminal": "T18", "capacity": 120, "occupied": 108},
+      {"block": "T18-C", "terminal": "T18", "capacity": 120, "occupied": 95},
+      {"block": "T18-D", "terminal": "T18", "capacity": 200, "occupied": 60},
+      {"block": "T20-A", "terminal": "T20", "capacity": 200, "occupied": 40},
+      {"block": "T20-B", "terminal": "T20", "capacity": 150, "occupied": 40}
+    ],
+    "storage_plan": {
+      "terminal": "T18",
+      "window": "12:00-16:00",
+      "vessel_id": "V-MERIDIAN",
+      "sequence": [
+        {"block": "T18-A", "containers": 160},
+        {"block": "T18-B", "containers": 140},
+        {"block": "T18-C", "containers": 100}
+      ]
+    }
+  },
+  "emodal": {
+    "appointments": [
+      {"window": "08:00-12:00", "terminal": "T18", "slots": 80, "booked": 40, "demand": 45},
+      {"window": "12:00-16:00", "terminal": "T18", "slots": 80, "booked": 78, "demand": 150},
+      {"window": "16:00-20:00", "terminal": "T18", "slots": 80, "booked": 30, "demand": 35}
+    ]
+  },
+  "as400": {
+    "fee_schedule": [
+      {"code": "DEMURRAGE", "unit": "container/day", "amount": 45.0, "currency": "USD"},
+      {"code": "STORAGE", "unit": "container/day", "amount": 12.0, "currency": "USD"},
+      {"code": "CONGESTION_SURCHARGE", "unit": "container", "amount": 8.0, "currency": "USD"}
+    ],
+    "demurrage_rules": {
+      "free_time_days": 4,
+      "surge_threshold_pct": 0.9,
+      "surge_multiplier": 1.5
+    }
+  }
+}

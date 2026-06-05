@@ -1,0 +1,15 @@
+# Carrix demo — runs on the Python standard library + httpx ONLY.
+# No `pip install` is required (the package CDN is blocked on this network), so the demo is
+# intentionally dependency-free apart from httpx, which is already present in the interpreter.
+# This file is metadata/config only; do not attempt to build or install the project.
+
+[project]
+name = "carrix-demo"
+version = "0.1.0"
+description = "Carrix Integrated Autonomous Mesh — Claude-orchestrated multi-agent reconciliation over mocked port systems."
+requires-python = ">=3.11"
+dependencies = ["httpx"]  # already installed in the system interpreter
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
