@@ -1,0 +1,15 @@
+# Render blueprint — lets Render auto-configure the service from this repo.
+# In Render: New ▸ Blueprint ▸ connect this GitHub repo. Render reads this file, builds the
+# Dockerfile, and stands up the service. Then set ANTHROPIC_API_KEY in the dashboard (it is
+# marked sync:false so it is NOT stored in the repo). Without the key it runs in fallback mode.
+services:
+  - type: web
+    name: carrix-integrated-mesh
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false   # set this as a secret in the Render dashboard
