@@ -1,0 +1,38 @@
+name: Build & publish Docker image
+
+# Builds the full app (UI + backend) into a single Docker image on GitHub's runners
+# (open internet, so the corporate PyPI/CDN blocks don't apply) and publishes it to the
+# GitHub Container Registry. Anyone can then run the demo with a single `docker run`.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # image name must be lowercase for GHCR
+          tags: |
+            ghcr.io/parthchaturvedi98/carrix-integrated-mesh:latest
+            ghcr.io/parthchaturvedi98/carrix-integrated-mesh:${{ github.sha }}

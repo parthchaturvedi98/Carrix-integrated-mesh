@@ -84,6 +84,31 @@ The agents and orchestrator are **dual-mode**:
 
 The header shows the current mode.
 
+## Share it — one command for someone else to run
+
+A GitHub Actions workflow (`.github/workflows/publish-image.yml`) builds the whole app into a
+single Docker image and publishes it to the GitHub Container Registry on every push to `main`.
+Anyone with Docker can then run the demo with **one command — no clone, no Python, no Node, no
+build**:
+
+```bash
+docker run --rm -p 8000:8000 ghcr.io/parthchaturvedi98/carrix-integrated-mesh:latest
+# then open http://localhost:8000   (deterministic fallback mode — no key needed)
+```
+
+To run it with live Claude, they add their own key:
+
+```bash
+docker run --rm -p 8000:8000 -e ANTHROPIC_API_KEY=sk-ant-... ghcr.io/parthchaturvedi98/carrix-integrated-mesh:latest
+```
+
+One-time setup after the first workflow run: make the published package public so recipients
+don't need to log in — GitHub → your profile → **Packages** → `carrix-integrated-mesh` →
+**Package settings** → **Change visibility** → Public. (Otherwise they'd `docker login ghcr.io` first.)
+
+> No Docker on their side? They can still clone the repo and run `./run_demo.ps1` (needs Python +
+> Node), but the Docker one-liner above is the easiest hand-off.
+
 ## Deploying
 
 The app is packaged as a **single service**: a multi-stage `Dockerfile` builds the React UI and
