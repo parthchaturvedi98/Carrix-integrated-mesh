@@ -1,11 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Proxy API + mock-system routes to the Python backend on :8000 so the React app and the
-// orchestrator share one origin in dev (SSE included).
+// Relative base on build so the bundle works under a GitHub Pages subpath
+// (https://<user>.github.io/<repo>/). Dev keeps "/". The proxy is only used when
+// developing against the Python backend (VITE_USE_BACKEND=true); the default engine
+// build needs no backend.
 const backend = 'http://127.0.0.1:8000'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? './' : '/',
   plugins: [react()],
   server: {
     port: 5173,
@@ -17,4 +20,4 @@ export default defineConfig({
       '/as400': { target: backend, changeOrigin: true },
     },
   },
-})
+}))

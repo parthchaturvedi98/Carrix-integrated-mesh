@@ -4,6 +4,8 @@ WORKDIR /ui
 COPY ui/package.json ui/package-lock.json ./
 RUN npm ci
 COPY ui/ ./
+# this image ships the Python backend (live Claude), so build the UI to talk to it
+ENV VITE_USE_BACKEND=true
 RUN npm run build          # produces /ui/dist
 
 # --- stage 2: python runtime (serves API + mocks + the built UI) ------------

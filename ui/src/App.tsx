@@ -35,13 +35,11 @@ export default function App() {
 
   const follow = useCallback((cid: string, onDone: () => void) => {
     unsub.current?.()
-    const seen = new Set<number>()
     unsub.current = streamTraces(
       cid,
       (e) => {
-        if (seen.has(e.seq)) return
-        seen.add(e.seq)
-        setTraces((prev) => [...prev, e].sort((a, b) => a.seq - b.seq))
+        // dedupe by seq against existing traces (re-subscribing replays buffered events)
+        setTraces((prev) => (prev.some((t) => t.seq === e.seq) ? prev : [...prev, e].sort((a, b) => a.seq - b.seq)))
       },
       onDone,
     )

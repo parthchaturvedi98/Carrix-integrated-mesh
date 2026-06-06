@@ -84,6 +84,24 @@ The agents and orchestrator are **dual-mode**:
 
 The header shows the current mode.
 
+## Live static demo (GitHub Pages)
+
+The React command centre can run **entirely in the browser** — the deterministic engine
+(collision detection, the four agents, mock systems, per-agent approval) is ported to TypeScript
+under `ui/src/engine/`, so there is no backend, no key, and no cost. A GitHub Actions workflow
+(`.github/workflows/deploy-pages.yml`) builds and publishes it to GitHub Pages on every push to
+`main`.
+
+- **URL (after Pages is enabled):** `https://parthchaturvedi98.github.io/Carrix-integrated-mesh/`
+- **One-time setup:** repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+  After the next push, the "Deploy static demo to GitHub Pages" workflow publishes the site.
+- This is the easiest thing to share — just send the link; anyone opens it in a browser.
+- It runs the **deterministic** reasoning (same conflict, agents, approval, resolution), **not**
+  live Claude. The full app with live Claude is the Docker/single-origin path below.
+
+The UI picks its data source at build time: the default build uses the in-browser engine; building
+with `VITE_USE_BACKEND=true` (as the `Dockerfile` does) makes it talk to the Python backend instead.
+
 ## Share it — one command for someone else to run
 
 A GitHub Actions workflow (`.github/workflows/publish-image.yml`) builds the whole app into a
