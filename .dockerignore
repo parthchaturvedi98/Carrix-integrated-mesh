@@ -1,0 +1,29 @@
+# keep the build context small and secret-free
+.git
+.gitignore
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+
+# secrets / machine-specific — never copy into the image
+.env
+.env.*
+corp-ca.pem
+
+# build artifacts (UI is rebuilt inside the image)
+ui/node_modules
+ui/dist
+
+# runtime artifacts
+carrix.db
+carrix.db-*
+*.log
+
+# editor / OS
+.vscode
+.idea
+.DS_Store
+.claude

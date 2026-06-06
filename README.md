@@ -84,6 +84,32 @@ The agents and orchestrator are **dual-mode**:
 
 The header shows the current mode.
 
+## Deploying
+
+The app is packaged as a **single service**: a multi-stage `Dockerfile` builds the React UI and
+the Python backend then serves both (API, mock systems, and the built UI) on one port — no CORS,
+one URL.
+
+- Binds `0.0.0.0:$PORT` (honours the platform-provided `$PORT`; defaults to 8000).
+- The only Python dependency is `httpx` (`requirements.txt`); the UI is built inside the image.
+- A normal cloud host has open internet, so the local-network workarounds (`corp-ca.pem`, blocked
+  CDNs) are not needed there.
+
+**Build & run locally with Docker:**
+
+```bash
+docker build -t carrix .
+docker run -p 8000:8000 -e ANTHROPIC_API_KEY=sk-ant-... carrix
+# open http://localhost:8000   (omit the -e flag to run in fallback mode, no key, no cost)
+```
+
+**On a platform (Render / Railway / Fly.io / Azure App Service):** point it at the GitHub repo
+(it auto-detects the `Dockerfile`), then add an environment variable / secret named
+`ANTHROPIC_API_KEY` in the platform's dashboard. That is the **only** place the key is entered — it
+is never committed. Without it, the deployed app serves in deterministic fallback mode.
+
+Health check endpoint: `GET /api/health`.
+
 ## Tests
 
 Acceptance criteria (brief §8) as stdlib `unittest` (no pytest needed):

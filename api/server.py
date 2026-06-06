@@ -178,15 +178,15 @@ def api_stream(params, _body):
         time.sleep(0.3)
 
 
-def root(_params, _body):
-    return 200, {"service": "carrix-demo", "llm_mode": config.llm_mode(),
-                 "docs": "POST /api/run, GET /api/runs/{id}, POST /api/proposals/{id}/approve"}
+def health(_params, _body):
+    return 200, {"service": "carrix-demo", "status": "ok", "llm_mode": config.llm_mode()}
 
 
 def build_router() -> Router:
     router = Router()
     register_mocks(router)
-    router.get("/", root)
+    # NB: no "/" route — in production "/" falls through to the static SPA (index.html).
+    router.get("/api/health", health)
     router.get("/api/status", api_status)
     router.get("/api/sources", api_sources)
     router.post("/api/reset", api_reset)
@@ -202,9 +202,11 @@ def build_router() -> Router:
 
 def main() -> None:
     db.init_db()
-    host, port = "127.0.0.1", 8000
-    httpd = serve(build_router(), host, port)
-    print(f"Carrix demo API + mocks on http://{host}:{port}  (LLM mode: {config.llm_mode()})",
+    host, port = config.HOST, config.PORT
+    static_dir = config.STATIC_DIR if config.STATIC_DIR.is_dir() else None
+    httpd = serve(build_router(), host, port, static_dir=static_dir)
+    ui = "serving built UI" if static_dir else "API only (run Vite separately)"
+    print(f"Carrix demo on http://{host}:{port}  (LLM mode: {config.llm_mode()}; {ui})",
           flush=True)
     try:
         httpd.serve_forever()

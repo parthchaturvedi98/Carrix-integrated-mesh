@@ -1,0 +1,3 @@
+# The Carrix backend runs on the Python standard library; httpx is the only dependency
+# (used by the MCP adapters and the Anthropic HTTP client).
+httpx>=0.27

@@ -7,11 +7,16 @@ production server — the route handlers are plain functions and would not chang
 from __future__ import annotations
 
 import json
+import mimetypes
 import re
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any, Callable, Iterable
 from urllib.parse import urlparse
+
+# path prefixes that are API/mock routes — never served as static files
+_API_PREFIXES = ("/api", "/tos", "/emodal", "/ais", "/as400", "/admin")
 
 
 class HTTPError(Exception):
@@ -63,7 +68,7 @@ class Router:
         return None, None
 
 
-def _make_handler_class(router: Router):
+def _make_handler_class(router: Router, static_dir: Path | None):
     class _Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
 
@@ -111,11 +116,40 @@ def _make_handler_class(router: Router):
         def do_POST(self) -> None:  # noqa: N802
             self._dispatch("POST")
 
+        def _serve_static(self, path: str) -> None:
+            """Serve the built SPA: real files when they exist, else index.html (client routing).
+            API/mock prefixes never fall through here."""
+            if any(path == p or path.startswith(p + "/") for p in _API_PREFIXES):
+                self._send_json(404, {"error": f"no route for GET {path}"})
+                return
+            index = static_dir / "index.html"
+            rel = path.lstrip("/") or "index.html"
+            target = (static_dir / rel).resolve()
+            try:
+                target.relative_to(static_dir.resolve())  # block path traversal
+                serve = target if target.is_file() else index
+            except ValueError:
+                serve = index
+            if not serve.is_file():
+                self._send_json(404, {"error": "not found"})
+                return
+            body = serve.read_bytes()
+            ctype = mimetypes.guess_type(str(serve))[0] or "application/octet-stream"
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self._cors_headers()
+            self.end_headers()
+            self.wfile.write(body)
+
         def _dispatch(self, method: str) -> None:
             path = urlparse(self.path).path
             route, params = router.match(method, path)
             if route is None:
-                self._send_json(404, {"error": f"no route for {method} {path}"})
+                if method == "GET" and static_dir is not None:
+                    self._serve_static(path)
+                else:
+                    self._send_json(404, {"error": f"no route for {method} {path}"})
                 return
             try:
                 body = self._read_body() if method == "POST" else None
@@ -163,5 +197,5 @@ class _Server(ThreadingHTTPServer):
     daemon_threads = True
 
 
-def serve(router: Router, host: str, port: int) -> ThreadingHTTPServer:
-    return _Server((host, port), _make_handler_class(router))
+def serve(router: Router, host: str, port: int, static_dir: Path | None = None) -> ThreadingHTTPServer:
+    return _Server((host, port), _make_handler_class(router, static_dir))

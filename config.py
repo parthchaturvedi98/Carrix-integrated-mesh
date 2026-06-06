@@ -60,9 +60,17 @@ def ca_bundle() -> str | bool:
     return True  # httpx default (certifi)
 
 
+# --- Server bind (local dev defaults; deploy platforms inject HOST/PORT) ------
+# Cloud hosts set $PORT and expect the app to listen on 0.0.0.0. Locally we keep
+# 127.0.0.1:8000 so nothing changes for the dev workflow.
+HOST = os.getenv("HOST", os.getenv("CARRIX_HOST", "127.0.0.1"))
+PORT = int(os.getenv("PORT", os.getenv("CARRIX_PORT", "8000")))
+
 # --- Mock systems (capability endpoints, one base path per system) -----------
 # A real deployment swaps these base URLs for the real systems; nothing else changes.
-MOCK_BASE = os.getenv("CARRIX_MOCK_BASE", "http://127.0.0.1:8000")
+# The orchestrator's adapters call these over HTTP on the SAME server, so the default
+# base must track the actual listen port (loopback), whatever $PORT the host assigns.
+MOCK_BASE = os.getenv("CARRIX_MOCK_BASE", f"http://127.0.0.1:{PORT}")
 TOS_BASE = os.getenv("CARRIX_TOS_BASE", f"{MOCK_BASE}/tos")
 EMODAL_BASE = os.getenv("CARRIX_EMODAL_BASE", f"{MOCK_BASE}/emodal")
 AIS_BASE = os.getenv("CARRIX_AIS_BASE", f"{MOCK_BASE}/ais")
@@ -75,6 +83,9 @@ SCENARIO_PATH = Path(
 )
 LOG_PATH = Path(os.getenv("CARRIX_LOG_PATH", str(ROOT / "carrix_trace.log")))
 
-# --- UI / CORS ---------------------------------------------------------------
+# --- UI -----------------------------------------------------------------------
+# In production the built React app is served by this backend (single origin). When the
+# folder exists, the server serves it; in dev it doesn't exist and the Vite server is used.
+STATIC_DIR = Path(os.getenv("CARRIX_STATIC_DIR", str(ROOT / "ui" / "dist")))
 UI_ORIGIN = os.getenv("CARRIX_UI_ORIGIN", "http://127.0.0.1:5173")
 UI_ORIGIN_ALT = "http://localhost:5173"
