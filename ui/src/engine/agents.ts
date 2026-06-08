@@ -12,6 +12,27 @@ export const AGENT_TASKS: Record<string, string> = {
   Fees: 'reading the AS/400 fee schedule to compute demurrage and congestion impact',
 }
 
+// Client use-case framing (from the "AI-Driven Yard & Port Operations" slide)
+export const UC = {
+  vessel: 'Vessel planning & container placement',
+  inout: 'Real-time inbound/outbound optimization',
+  cost: 'Cost & demurrage impact',
+}
+
+const BENEFITS: Record<string, string[]> = {
+  [UC.vessel]: [
+    '5-15% fewer non-revenue moves',
+    '10-25% higher yard productivity',
+    '5-12% faster vessel turnaround',
+  ],
+  [UC.inout]: [
+    '15-30% lower truck wait time',
+    '10-20% better appointment adherence',
+    '5-10% fewer congestion delays',
+  ],
+  [UC.cost]: ['Avoids congestion surcharge and demurrage exposure'],
+}
+
 export function yardProposal(s: Snapshot): AgentProposal {
   const overflow = A.planOverflow(s)
   const plan = A.resequencePlan(s)
@@ -30,6 +51,9 @@ export function yardProposal(s: Snapshot): AgentProposal {
       ? [{ tool: 'tos.write_plan', args: { plan }, mutating: true, description: `Re-sequence storage plan across blocks: ${blocks}` }]
       : [],
     evidence_ids: ['tos.read_yard', 'tos.read_storage_plan'],
+    use_case: UC.vessel,
+    targets: ['Yard rehandles / non-revenue moves', 'Yard productivity', 'Planned vs actual moves'],
+    benefits: BENEFITS[UC.vessel],
   }
 }
 
@@ -50,6 +74,9 @@ export function gateProposal(s: Snapshot): AgentProposal {
       ? [{ tool: 'emodal.set_slots', args: { updates }, mutating: true, description: 'Stagger appointments across windows and add lanes to the surge window.' }]
       : [],
     evidence_ids: ['emodal.list_appointments'],
+    use_case: UC.inout,
+    targets: ['Truck wait / gate wait time', 'Appointment SLA / cut-off adherence'],
+    benefits: BENEFITS[UC.inout],
   }
 }
 
@@ -76,6 +103,9 @@ export function vesselProposal(s: Snapshot): AgentProposal {
       { tool: 'ais.confirm_window', args: { vessel_id: v.vessel_id, discharge_window: M.focus_window, confirmed: true }, mutating: true, description: `Confirm ${v.vessel_id} discharge window ${M.focus_window}.` },
     ],
     evidence_ids: ['ais.positions', 'ais.manifests'],
+    use_case: UC.vessel,
+    targets: ['Vessel turnaround time'],
+    benefits: BENEFITS[UC.vessel],
   }
 }
 
@@ -93,6 +123,9 @@ export function feesProposal(s: Snapshot): AgentProposal {
       'to over-capacity containers. Resolving the yard overflow drives these to zero.',
     proposed_actions: [],
     evidence_ids: ['as400.fee_schedule', 'as400.demurrage_rules'],
+    use_case: UC.cost,
+    targets: ['Congestion surcharge', 'Demurrage risk'],
+    benefits: BENEFITS[UC.cost],
   }
 }
 

@@ -30,8 +30,21 @@ export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
           <span className="pill pill-action">{p.proposed_actions.length} action</span>
         )}
       </header>
+      {p.use_case && <div className="uc-chip">{p.use_case}</div>}
       <p className="findings">{p.findings}</p>
       <p className="rationale"><strong>Why:</strong> {p.rationale}</p>
+      {!!(p.targets?.length || p.benefits?.length) && (
+        <div className="uc-meta">
+          {p.targets?.length ? (
+            <div className="uc-line"><span className="uc-key">Targets</span> {p.targets.join(' · ')}</div>
+          ) : null}
+          {p.benefits?.length ? (
+            <div className="uc-benefits">
+              {p.benefits.map((b) => <span key={b} className="chip chip-benefit">{b}</span>)}
+            </div>
+          ) : null}
+        </div>
+      )}
       {p.proposed_actions.map((a, i) => (
         <div key={i} className="action">
           <code className="tool">{a.tool}</code>

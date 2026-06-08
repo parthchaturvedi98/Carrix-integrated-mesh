@@ -1,6 +1,6 @@
 // Pure domain analysis — browser port of analysis.py. No dependencies, no I/O.
 import { SCENARIO_META } from './scenario'
-import type { Conflict, ConflictDetail, Snapshot, YardBlock } from '../types'
+import type { Conflict, ConflictDetail, Snapshot, UseCaseOutcome, YardBlock } from '../types'
 
 const M = SCENARIO_META
 
@@ -44,6 +44,7 @@ export function detectCollision(s: Snapshot): Conflict {
   const overflow = planOverflow(s)
   const congested = overflow.length > 0
   const detected = surge && (apptExceeds || congested)
+  const focusVessel = s.vessels.find((v) => v.terminal === terminal && v.discharge_window === window)
 
   const summary = detected
     ? `T18 collision: ${total} containers discharging at ${terminal} in ${window} collide with a ` +
@@ -65,6 +66,7 @@ export function detectCollision(s: Snapshot): Conflict {
       appointment_surge: apptExceeds,
       overflow_blocks: overflow,
       yard_congested: congested,
+      vessel_confirmed: Boolean(focusVessel?.confirmed),
     },
   }
 }
@@ -113,6 +115,51 @@ export function staggerSlots(s: Snapshot) {
     if (i > 1000) break
   }
   return appts.map((a) => ({ window: a.window, terminal, slots: a.slots, demand: a.demand }))
+}
+
+// Map the before/after conflict details to the client's use-case KPIs + benefit ranges.
+export function computeOutcomes(
+  initial: ConflictDetail,
+  latest: ConflictDetail,
+  fees: { code: string; amount: number }[],
+): UseCaseOutcome[] {
+  const rate = (code: string) => fees.find((f) => f.code === code)?.amount ?? 0
+  const cong = rate('CONGESTION_SURCHARGE')
+  const dem = rate('DEMURRAGE')
+  const sumOverflow = (d: ConflictDetail) => d.overflow_blocks.reduce((s, o) => s + o.overflow, 0)
+  const ovB = sumOverflow(initial)
+  const ovA = sumOverflow(latest)
+  const trucksB = Math.max(0, initial.appointment_demand - initial.appointment_slots)
+  const trucksA = Math.max(0, latest.appointment_demand - latest.appointment_slots)
+  const money = (n: number) => `$${Math.round(n).toLocaleString()}`
+
+  return [
+    {
+      use_case: 'Vessel planning & container placement',
+      kpis: [
+        { label: 'Non-revenue moves (yard rehandles)', before: `${ovB}`, after: `${ovA}`, achieved: ovA < ovB },
+        { label: 'Over-capacity yard blocks', before: `${initial.overflow_blocks.length}`, after: `${latest.overflow_blocks.length}`, achieved: latest.overflow_blocks.length < initial.overflow_blocks.length },
+        { label: 'Vessel discharge window', before: initial.vessel_confirmed ? 'confirmed' : 'unconfirmed', after: latest.vessel_confirmed ? 'confirmed' : 'unconfirmed', achieved: Boolean(latest.vessel_confirmed) && !initial.vessel_confirmed },
+      ],
+      benefits: ['5-15% fewer non-revenue moves', '10-25% higher yard productivity', '5-12% faster vessel turnaround'],
+    },
+    {
+      use_case: 'Real-time inbound/outbound optimization',
+      kpis: [
+        { label: 'Trucks over slot capacity (surge window)', before: `${trucksB}`, after: `${trucksA}`, achieved: trucksA < trucksB },
+        { label: 'Appointment demand vs slots', before: `${initial.appointment_demand}/${initial.appointment_slots}`, after: `${latest.appointment_demand}/${latest.appointment_slots}`, achieved: latest.appointment_demand <= latest.appointment_slots && initial.appointment_demand > initial.appointment_slots },
+      ],
+      benefits: ['15-30% lower truck wait time', '10-20% better appointment adherence', '5-10% fewer congestion delays'],
+    },
+    {
+      use_case: 'Cost & demurrage impact',
+      kpis: [
+        { label: 'Congestion surcharge exposure', before: money(ovB * cong), after: money(ovA * cong), achieved: ovA * cong < ovB * cong },
+        { label: 'Demurrage risk (per day)', before: money(ovB * dem), after: money(ovA * dem), achieved: ovA * dem < ovB * dem },
+      ],
+      benefits: ['Avoids congestion surcharge and demurrage exposure'],
+    },
+  ]
 }
 
 export function computeFees(s: Snapshot) {

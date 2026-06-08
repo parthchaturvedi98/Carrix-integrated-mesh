@@ -15,6 +15,23 @@ export interface AgentProposal {
   rationale: string
   proposed_actions: Action[]
   evidence_ids: string[]
+  // optional client use-case framing (present in the in-browser engine build)
+  use_case?: string
+  targets?: string[]      // KPI names this agent moves
+  benefits?: string[]     // estimated-benefit lines from the client slide
+}
+
+export interface KpiDelta {
+  label: string
+  before: string
+  after: string
+  achieved: boolean
+}
+
+export interface UseCaseOutcome {
+  use_case: string
+  kpis: KpiDelta[]
+  benefits: string[]
 }
 
 export interface ConflictDetail {
@@ -28,6 +45,7 @@ export interface ConflictDetail {
   appointment_surge: boolean
   overflow_blocks: { block: string; assigned: number; remaining: number; overflow: number }[]
   yard_congested: boolean
+  vessel_confirmed?: boolean
 }
 
 export interface Conflict {

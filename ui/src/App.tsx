@@ -3,6 +3,7 @@ import './App.css'
 import { api, streamTraces } from './api'
 import { AgentStrip } from './components/AgentStrip'
 import { ConflictPanel } from './components/ConflictPanel'
+import { OutcomesPanel } from './components/OutcomesPanel'
 import { Icon } from './components/icons'
 import { ProposalCard } from './components/ProposalCard'
 import { SourcesPanel } from './components/SourcesPanel'
@@ -241,6 +242,9 @@ export default function App() {
             )}
             {phase === 'applying' && (
               <div className="banner banner-info"><span className="spinner" /> Writing back approved decisions and re-observing…</div>
+            )}
+            {phase === 'done' && view && (view.status === 'resolved' || view.status === 'applied') && (
+              <OutcomesPanel view={view} />
             )}
             {phase === 'done' && view?.status === 'resolved' && (
               <div className="banner banner-ok">
