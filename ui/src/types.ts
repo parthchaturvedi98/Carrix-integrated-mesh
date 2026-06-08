@@ -74,6 +74,11 @@ export interface Conflict {
   detail: ConflictDetail
 }
 
+export interface Forecast {
+  predicted_conflict: Conflict
+  outcomes: UseCaseOutcome[]
+}
+
 export interface Plan {
   conflict: Conflict
   agents: AgentProposal[]

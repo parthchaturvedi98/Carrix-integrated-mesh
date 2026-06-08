@@ -3,7 +3,7 @@ import { Icon } from './icons'
 
 type Phase = 'idle' | 'running' | 'awaiting' | 'applying' | 'done'
 
-const STAGES = ['Ingest', 'Reason', 'Coordinate', 'Plan', 'Approve', 'Apply', 'Re-observe', 'Resolve']
+const STAGES = ['Ingest', 'Reason', 'Coordinate', 'Simulate', 'Approve', 'Execute', 'Verify', 'Resolve']
 
 // Which stage of the orchestrator loop is active, from the run phase + latest trace step.
 function activeStage(phase: Phase, last: TraceEvent | null): number {
@@ -11,7 +11,7 @@ function activeStage(phase: Phase, last: TraceEvent | null): number {
   if (phase === 'running') {
     if (step === 'reason') return 1
     if (step === 'fanout' || step.startsWith('agent:')) return 2
-    if (step === 'assemble') return 3
+    if (step === 'assemble' || step === 'simulate') return 3
     return 0 // start / ingest
   }
   if (phase === 'awaiting') return 4

@@ -6,7 +6,7 @@ import * as A from './analysis'
 import { AGENTS, AGENT_TASKS, runAgent } from './agents'
 import { SCENARIO_META, seedState, type RawMockState } from './scenario'
 import type {
-  Action, AgentProposal, Conflict, Proposal, RunView, Snapshot, Status, TraceEvent,
+  Action, AgentProposal, Conflict, Forecast, Proposal, RunView, Snapshot, Status, TraceEvent,
 } from '../types'
 
 const M = SCENARIO_META
@@ -18,6 +18,7 @@ interface RunState {
   conflicts: Conflict[]
   proposal: Proposal | null
   snapshot: Snapshot
+  baseSnapshot: Snapshot | null // pre-write-back state, used by the digital-twin simulator
   seq: number
   listeners: Set<(e: TraceEvent) => void>
   doneListeners: Set<() => void>
@@ -128,9 +129,13 @@ async function runPipeline(run: RunState): Promise<void> {
   for (const p of proposals) for (const a of p.proposed_actions) if (a.mutating) actions.push({ ...a, agent: p.agent })
   const proposalId = rid()
   run.proposal = { id: proposalId, correlation_id: run.correlation_id, status: 'pending', plan: { conflict, agents: proposals, actions } }
-  run.status = 'awaiting_approval'
-  addTrace(run, 'assemble', 'info', 'Assembled proposed plan; awaiting human approval (no write-back yet)',
+  addTrace(run, 'assemble', 'info', 'Assembled the recommended plan from all owners',
     { proposal_id: proposalId, mutating_actions: actions.length })
+  // digital-twin simulation beat: forecast the plan before any real write-back
+  await sleep(1100)
+  run.baseSnapshot = structuredClone(run.snapshot)
+  addTrace(run, 'simulate', 'info', 'Simulating the plan in the digital twin to forecast the outcome before any write-back')
+  run.status = 'awaiting_approval'
   fireDone(run)
 }
 
@@ -223,7 +228,7 @@ export const engine = {
     const cid = rid()
     const run: RunState = {
       correlation_id: cid, status: 'running', traces: [], conflicts: [], proposal: null,
-      snapshot: ingest(), seq: 0, listeners: new Set(), doneListeners: new Set(),
+      snapshot: ingest(), baseSnapshot: null, seq: 0, listeners: new Set(), doneListeners: new Set(),
     }
     runs.set(cid, run)
     void runPipeline(run)
@@ -234,6 +239,21 @@ export const engine = {
     const run = runs.get(cid)
     if (!run) throw new Error(`unknown run ${cid}`)
     return view(run)
+  },
+
+  // Digital-twin "what-if": simulate only the approved agents' actions against the pre-write-back
+  // baseline and forecast the outcome — without touching the mock systems. Used live as the
+  // operator toggles per-agent decisions, before they commit.
+  simulate(cid: string, approvedAgents: string[]): Forecast | null {
+    const run = runs.get(cid)
+    if (!run || !run.proposal || !run.conflicts.length) return null
+    const base = run.baseSnapshot ?? run.snapshot
+    const approved = new Set(approvedAgents)
+    const actions = run.proposal.plan.actions.filter((a) => approved.has(a.agent as string))
+    const predicted = A.simulatePlan(base, actions)
+    const predictedConflict = A.detectCollision(predicted)
+    const outcomes = A.computeOutcomes(run.conflicts[0].detail, predictedConflict.detail, (predicted.fees ?? []) as { code: string; amount: number }[])
+    return { predicted_conflict: predictedConflict, outcomes }
   },
 
   commit(pid: string, decisions: Record<string, string>): string {

@@ -3,6 +3,8 @@ import './App.css'
 import { api, streamTraces } from './api'
 import { AgentStrip } from './components/AgentStrip'
 import { ConflictPanel } from './components/ConflictPanel'
+import { ControlTowerPanel } from './components/ControlTowerPanel'
+import { ForecastPanel } from './components/ForecastPanel'
 import { OrchestratorBar } from './components/OrchestratorBar'
 import { OutcomesPanel } from './components/OutcomesPanel'
 import { Icon } from './components/icons'
@@ -146,8 +148,8 @@ export default function App() {
         <div className="brand">
           <div className="logo"><Icon name="mesh" /></div>
           <div>
-            <h1>Carrix · Integrated Autonomous Mesh</h1>
-            <p className="tag">Plan-vs-reality reconciliation across TOS · eModal · AIS · AS/400</p>
+            <h1>Carrix · Terminal Control Tower</h1>
+            <p className="tag">Yard digital twin · one operating picture across yard, gate, vessel &amp; equipment</p>
           </div>
         </div>
         <div className="topbar-right">
@@ -217,12 +219,15 @@ export default function App() {
             )}
 
             {phase === 'awaiting' && view?.proposal && (
+              <ForecastPanel view={view} decisions={decisions} mutatingAgents={mutatingAgents} />
+            )}
+            {phase === 'awaiting' && view?.proposal && (
               <div className="approval-bar">
                 <div className="approval-text">
-                  <strong>Human-in-the-loop — approve each agent’s write-back.</strong>
+                  <strong>Human-in-the-loop — review the twin forecast, then approve each write-back.</strong>
                   <span>
                     {decidedCount}/{mutatingAgents.length} decided ({approvedCount} approved). Only approved
-                    actions are written back; nothing changes until you commit.
+                    actions are written back to the real systems; nothing changes until you commit.
                   </span>
                 </div>
                 <div className="approval-actions">
@@ -257,6 +262,7 @@ export default function App() {
           </div>
 
           <div className="col-side">
+            {view && <ControlTowerPanel view={view} />}
             <AgentStrip traces={traces} />
             {view && <YardView snapshot={view.snapshot} />}
             <TracePanel traces={traces} />

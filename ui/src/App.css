@@ -240,6 +240,32 @@
 .outcome-benefits { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .outcomes-foot { color: var(--muted); font-size: 11px; margin: 12px 0 0; }
 
+/* digital-twin forecast panel */
+.forecast { border-left: 4px solid var(--mut); }
+.forecast-badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: var(--mut); flex: 1; }
+.forecast-lead { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+.outcomes-lead { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+
+/* control tower operating picture */
+.tower .panel-head { justify-content: space-between; }
+.pill.risk-low { background: var(--ok-soft); color: var(--ok); }
+.pill.risk-medium { background: var(--warn-soft); color: var(--warn); }
+.pill.risk-high { background: var(--alert-soft); color: var(--alert); }
+.tower-domains { display: flex; flex-wrap: wrap; gap: 7px; }
+.domain { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); }
+.domain-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
+.domain.on .domain-dot { background: var(--ok); }
+.domain.off { color: var(--muted); opacity: .7; }
+.domain.off .domain-dot { background: var(--line-strong); }
+.tower-owners { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.tower-sub { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; margin-bottom: 7px; }
+.owner-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 12.5px; }
+.owner-name { color: var(--text); }
+.owner-status { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+.owner-status.s-pending { background: var(--accent-soft); color: var(--accent); }
+.owner-status.s-approved { background: var(--ok-soft); color: var(--ok); }
+.owner-status.s-rejected { background: var(--alert-soft); color: var(--alert); }
+
 /* spinner */
 .spinner { width: 13px; height: 13px; border: 2px solid rgba(37, 99, 235, .25); border-top-color: var(--accent); border-radius: 50%; display: inline-block; animation: spin .7s linear infinite; }
 .spinner.big { width: 26px; height: 26px; border-width: 3px; }

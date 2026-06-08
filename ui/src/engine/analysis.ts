@@ -138,6 +138,39 @@ export function staggerSlots(s: Snapshot) {
   return appts.map((a) => ({ window: a.window, terminal, slots: a.slots, demand: a.demand }))
 }
 
+// Digital-twin simulator: apply the proposed actions to a CLONE of the snapshot (never the live
+// systems) so we can forecast the outcome before any write-back. Mirrors engine.applyAction.
+export function simulatePlan(
+  snapshot: Snapshot,
+  actions: { tool: string; args: Record<string, any> }[],
+): Snapshot {
+  const s: Snapshot = structuredClone(snapshot)
+  for (const a of actions) {
+    if (a.tool === 'tos.write_plan') {
+      s.storage_plan = a.args.plan
+    } else if (a.tool === 'emodal.set_slots') {
+      const updates = (a.args.updates ?? []) as { window: string; terminal: string; slots: number; demand?: number }[]
+      for (const u of updates) {
+        const ap = s.appointments.find((x) => x.window === u.window && x.terminal === u.terminal)
+        if (ap) { ap.slots = u.slots; if (u.demand != null) ap.demand = u.demand }
+      }
+    } else if (a.tool === 'ais.confirm_window') {
+      const v = s.vessels.find((x: any) => x.vessel_id === a.args.vessel_id)
+      if (v) { v.discharge_window = a.args.discharge_window; v.confirmed = Boolean(a.args.confirmed) }
+    } else if (a.tool === 'ecs.optimize_dispatch') {
+      s.movement = a.args.plan
+      if (s.equipment) s.equipment = s.equipment.map((e) => ({ ...e, utilization_pct: a.args.plan.avg_utilization_pct, status: 'busy' }))
+    }
+  }
+  return s
+}
+
+// number of active bottlenecks in the operating picture (over-capacity blocks + appointment surge
+// window + idle-equipment condition)
+function bottlenecks(d: ConflictDetail): number {
+  return d.overflow_blocks.length + (d.appointment_surge ? 1 : 0) + ((d.idle_equipment ?? 0) > 0 ? 1 : 0)
+}
+
 // Map the before/after conflict details to the client's use-case KPIs + benefit ranges.
 export function computeOutcomes(
   initial: ConflictDetail,
@@ -155,6 +188,14 @@ export function computeOutcomes(
   const money = (n: number) => `$${Math.round(n).toLocaleString()}`
 
   return [
+    {
+      use_case: 'Digital twin / control tower',
+      kpis: [
+        { label: 'Active bottlenecks', before: `${bottlenecks(initial)}`, after: `${bottlenecks(latest)}`, achieved: bottlenecks(latest) < bottlenecks(initial) },
+        { label: 'Scenario cycle time', before: 'hours (manual)', after: 'seconds (twin)', achieved: true },
+      ],
+      benefits: ['20-40% faster scenario decisions', '5-15% throughput uplift in constrained periods', '10-20% fewer planning errors'],
+    },
     {
       use_case: 'Vessel planning & container placement',
       kpis: [
