@@ -29,7 +29,6 @@ export function OutcomesPanel({ view }: { view: RunView }) {
       </div>
       <p className="outcomes-lead">The digital twin's pre-execution forecast matched the executed result.</p>
       <OutcomeGroups outcomes={outcomes} />
-      <p className="outcomes-foot">Benefit ranges are illustrative estimates from the AI-Driven Yard &amp; Port Operations model.</p>
     </section>
   )
 }

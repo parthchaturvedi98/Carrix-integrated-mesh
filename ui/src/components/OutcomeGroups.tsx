@@ -22,9 +22,6 @@ export function OutcomeGroups({ outcomes }: { outcomes: UseCaseOutcome[] }) {
               </div>
             ))}
           </div>
-          <div className="outcome-benefits">
-            {uc.benefits.map((b) => <span key={b} className="chip chip-benefit">{b}</span>)}
-          </div>
         </div>
       ))}
     </div>
