@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { api, streamTraces } from './api'
 import { AgentStrip } from './components/AgentStrip'
@@ -14,8 +14,11 @@ import { TracePanel } from './components/TracePanel'
 import { YardView } from './components/YardView'
 import type { AgentProposal, Conflict, Decision, RunView, Sources, Status, TraceEvent } from './types'
 
+const TwinScene = lazy(() => import('./components/TwinScene'))
+
 type Phase = 'idle' | 'running' | 'awaiting' | 'applying' | 'done'
-const AGENT_ORDER = ['Yard', 'Gate', 'Vessel', 'Fees']
+type Tab = 'dashboard' | 'twin'
+const AGENT_ORDER = ['Yard', 'Gate', 'Vessel', 'Movement', 'Fees']
 
 export default function App() {
   const [status, setStatus] = useState<Status | null>(null)
@@ -23,6 +26,7 @@ export default function App() {
   const [view, setView] = useState<RunView | null>(null)
   const [traces, setTraces] = useState<TraceEvent[]>([])
   const [phase, setPhase] = useState<Phase>('idle')
+  const [tab, setTab] = useState<Tab>('dashboard')
   const [decisions, setDecisions] = useState<Record<string, Decision>>({})
   const [error, setError] = useState<string | null>(null)
   const unsub = useRef<(() => void) | null>(null)
@@ -142,6 +146,10 @@ export default function App() {
   const setDecision = (agent: string, d: Decision) => setDecisions((p) => ({ ...p, [agent]: d }))
   const setAll = (d: Decision) => setDecisions(Object.fromEntries(mutatingAgents.map((a) => [a, d])))
 
+  // data for the 3D twin: the live snapshot once a run exists, else the seeded yard from sources
+  const twinSnapshot = view?.snapshot
+    ?? (sources ? { yard_blocks: sources.tos.yard_blocks, storage_plan: sources.tos.storage_plan } : null)
+
   return (
     <div className="app">
       <header className="topbar">
@@ -182,9 +190,20 @@ export default function App() {
         {error && <span className="error">{error}</span>}
       </div>
 
-      {phase === 'idle' && sources && <SourcesPanel sources={sources} />}
+      <div className="tabs">
+        <button className={`tab ${tab === 'dashboard' ? 'active' : ''}`} onClick={() => setTab('dashboard')}>Command centre</button>
+        <button className={`tab ${tab === 'twin' ? 'active' : ''}`} onClick={() => setTab('twin')}>3D twin</button>
+      </div>
 
-      {phase !== 'idle' && (
+      {tab === 'twin' && (
+        twinSnapshot
+          ? <Suspense fallback={<div className="twin-loading">Loading 3D twin…</div>}><TwinScene snapshot={twinSnapshot} /></Suspense>
+          : <div className="twin-loading">Run the loop or reset to load the yard.</div>
+      )}
+
+      {tab === 'dashboard' && phase === 'idle' && sources && <SourcesPanel sources={sources} />}
+
+      {tab === 'dashboard' && phase !== 'idle' && (
         <main className="grid">
           <div className="col-main">
             <OrchestratorBar phase={phase} traces={traces} />
