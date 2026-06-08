@@ -201,7 +201,7 @@ export default function App() {
                 <div className="section-bar">
                   <h2 className="section-title">
                     Agent proposals — your call on each
-                    {phase === 'running' && <span className="live-count"> · {proposals.length}/4 in…</span>}
+                    {phase === 'running' && <span className="live-count"> · {proposals.length} in…</span>}
                   </h2>
                   {phase === 'awaiting' && (
                     <div className="bulk">

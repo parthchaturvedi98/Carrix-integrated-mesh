@@ -46,6 +46,8 @@ function ingest(): Snapshot {
     appointments: structuredClone(state.emodal.appointments),
     fees: structuredClone(state.as400.fee_schedule),
     storage_plan: structuredClone(state.tos.storage_plan),
+    equipment: structuredClone(state.ecs.equipment),
+    movement: structuredClone(state.ecs.movement),
   }
 }
 
@@ -72,6 +74,13 @@ function applyAction(action: Action): void {
   } else if (action.tool === 'ais.confirm_window') {
     const m = state.ais.manifests.find((x) => x.vessel_id === action.args.vessel_id)
     if (m) { m.discharge_window = String(action.args.discharge_window); m.confirmed = Boolean(action.args.confirmed) }
+  } else if (action.tool === 'ecs.optimize_dispatch') {
+    const plan = action.args.plan as RawMockState['ecs']['movement']
+    state.ecs.movement = plan
+    // balance the fleet to the optimized average utilization
+    state.ecs.equipment = state.ecs.equipment.map((e) => ({
+      ...e, utilization_pct: plan.avg_utilization_pct, status: 'busy',
+    }))
   }
 }
 
@@ -99,7 +108,7 @@ async function runPipeline(run: RunState): Promise<void> {
   }
 
   await sleep(250)
-  addTrace(run, 'fanout', 'info', 'Orchestrator fanning out to 4 worker agents', { agents: [...AGENTS] })
+  addTrace(run, 'fanout', 'info', `Orchestrator fanning out to ${AGENTS.length} worker agents`, { agents: [...AGENTS] })
   const proposals: AgentProposal[] = []
   for (const name of AGENTS) {
     addTrace(run, `agent:${name.toLowerCase()}`, 'info', `${name} agent ${AGENT_TASKS[name]}...`, { agent: name, state: 'start' })
@@ -197,6 +206,7 @@ export const engine = {
       emodal: { appointments: structuredClone(state.emodal.appointments) },
       ais: { positions: structuredClone(state.ais.positions), manifests: structuredClone(state.ais.manifests) },
       as400: { fee_schedule: structuredClone(state.as400.fee_schedule) },
+      ecs: { equipment: structuredClone(state.ecs.equipment), movement: structuredClone(state.ecs.movement) },
       scenario: { terminal: M.terminal, focus_window: M.focus_window },
     }
   },

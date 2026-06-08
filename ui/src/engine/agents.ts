@@ -9,6 +9,7 @@ export const AGENT_TASKS: Record<string, string> = {
   Yard: 'reading yard occupancy and storage plan to re-sequence around congestion',
   Gate: 'reading appointment slots to stagger the trucker surge',
   Vessel: 'reading AIS positions and manifests to confirm the discharge window',
+  Movement: 'reading equipment telemetry to optimize routes and balance crane workload',
   Fees: 'reading the AS/400 fee schedule to compute demurrage and congestion impact',
 }
 
@@ -16,6 +17,7 @@ export const AGENT_TASKS: Record<string, string> = {
 export const UC = {
   vessel: 'Vessel planning & container placement',
   inout: 'Real-time inbound/outbound optimization',
+  movement: 'Container movement optimization',
   cost: 'Cost & demurrage impact',
 }
 
@@ -29,6 +31,11 @@ const BENEFITS: Record<string, string[]> = {
     '15-30% lower truck wait time',
     '10-20% better appointment adherence',
     '5-10% fewer congestion delays',
+  ],
+  [UC.movement]: [
+    '10-20% fewer moves',
+    '5-15% higher equipment utilization',
+    '5-10% lower fuel/energy use',
   ],
   [UC.cost]: ['Avoids congestion surcharge and demurrage exposure'],
 }
@@ -109,6 +116,32 @@ export function vesselProposal(s: Snapshot): AgentProposal {
   }
 }
 
+export function movementProposal(s: Snapshot): AgentProposal {
+  const mv = s.movement
+  const equip = s.equipment ?? []
+  const idle = equip.filter((e) => e.utilization_pct < 40).length
+  const optimized = mv ? A.optimizeMovement(mv) : undefined
+  const hasWork = !!mv && (mv.unnecessary_shuffles > 0 || idle > 0)
+  return {
+    agent: 'Movement',
+    findings: mv
+      ? `${mv.total_moves} container moves planned, including ${mv.unnecessary_shuffles} unnecessary shuffles. ` +
+        `${idle} of ${equip.length} yard cranes are idle (under 40 percent utilization) while others are overloaded; ` +
+        `average utilization ${mv.avg_utilization_pct} percent, cycle time ${mv.cycle_time_min} minutes per move.`
+      : 'No equipment telemetry available.',
+    rationale:
+      'Route optimization and task allocation balance the workload across all yard cranes, remove ' +
+      'redundant shuffles, and cut equipment idle time, lowering moves per lift and cycle time.',
+    proposed_actions: hasWork && optimized
+      ? [{ tool: 'ecs.optimize_dispatch', args: { plan: optimized }, mutating: true, description: 'Rebalance equipment dispatch and optimize routes to cut redundant moves.' }]
+      : [],
+    evidence_ids: ['ecs.equipment_telemetry', 'ecs.move_log'],
+    use_case: UC.movement,
+    targets: ['Container moves per lift', 'Equipment utilization', 'Cycle time'],
+    benefits: BENEFITS[UC.movement],
+  }
+}
+
 export function feesProposal(s: Snapshot): AgentProposal {
   const f = A.computeFees(s)
   const cur = f.currency
@@ -129,12 +162,13 @@ export function feesProposal(s: Snapshot): AgentProposal {
   }
 }
 
-export const AGENTS = ['Yard', 'Gate', 'Vessel', 'Fees'] as const
+export const AGENTS = ['Yard', 'Gate', 'Vessel', 'Movement', 'Fees'] as const
 export function runAgent(name: string, s: Snapshot): AgentProposal {
   switch (name) {
     case 'Yard': return yardProposal(s)
     case 'Gate': return gateProposal(s)
     case 'Vessel': return vesselProposal(s)
+    case 'Movement': return movementProposal(s)
     default: return feesProposal(s)
   }
 }

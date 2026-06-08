@@ -39,6 +39,18 @@ export function SourcesPanel({ sources }: { sources: Sources }) {
     },
   ]
 
+  if (sources.ecs) {
+    const eq = sources.ecs.equipment
+    const idle = eq.filter((e) => e.utilization_pct < 40).length
+    silos.push({
+      key: 'ecs', icon: 'movement', name: 'Mock ECS', sub: 'equipment · IoT telemetry',
+      lines: eq.map((e) => `${e.id} (${e.type}): ${e.utilization_pct}% (${e.status})`),
+      flag: idle > 0 || sources.ecs.movement.unnecessary_shuffles > 0
+        ? `${idle} crane(s) idle, ${sources.ecs.movement.unnecessary_shuffles} unnecessary shuffles`
+        : null,
+    })
+  }
+
   return (
     <section className="sources">
       <div className="sources-intro">

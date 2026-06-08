@@ -10,7 +10,7 @@ export interface Action {
 export type Decision = 'approve' | 'reject'
 
 export interface AgentProposal {
-  agent: 'Yard' | 'Gate' | 'Vessel' | 'Fees'
+  agent: 'Yard' | 'Gate' | 'Vessel' | 'Movement' | 'Fees'
   findings: string
   rationale: string
   proposed_actions: Action[]
@@ -46,6 +46,26 @@ export interface ConflictDetail {
   overflow_blocks: { block: string; assigned: number; remaining: number; overflow: number }[]
   yard_congested: boolean
   vessel_confirmed?: boolean
+  // container-movement (equipment) metrics
+  moves?: number
+  shuffles?: number
+  idle_equipment?: number
+  avg_utilization?: number
+  cycle_time?: number
+}
+
+export interface Equipment {
+  id: string
+  type: string
+  utilization_pct: number
+  status: string
+}
+
+export interface Movement {
+  total_moves: number
+  unnecessary_shuffles: number
+  avg_utilization_pct: number
+  cycle_time_min: number
 }
 
 export interface Conflict {
@@ -80,6 +100,8 @@ export interface Snapshot {
   appointments: { window: string; terminal: string; slots: number; booked: number; demand: number }[]
   fees: any[]
   storage_plan: { terminal: string; window: string; vessel_id: string; sequence: { block: string; containers: number }[] } | null
+  equipment?: Equipment[]
+  movement?: Movement
 }
 
 export interface RunView {
@@ -127,6 +149,7 @@ export interface Sources {
   emodal: { appointments: Snapshot['appointments'] }
   ais: { positions: any[]; manifests: Vessel[] }
   as400: { fee_schedule: { code: string; unit: string; amount: number; currency: string }[] }
+  ecs?: { equipment: Equipment[]; movement: Movement }
   scenario: { terminal: string; focus_window: string }
 }
 

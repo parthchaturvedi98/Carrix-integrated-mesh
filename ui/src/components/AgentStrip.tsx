@@ -1,14 +1,14 @@
 import type { TraceEvent } from '../types'
 import { AGENT_ICON, Icon } from './icons'
 
-const AGENTS = ['Yard', 'Gate', 'Vessel', 'Fees'] as const
+const AGENTS = ['Yard', 'Gate', 'Vessel', 'Movement', 'Fees'] as const
 
 type State = 'pending' | 'working' | 'done'
 
 /** Live status of each worker agent, derived from the trace stream:
  *  a `state:start` event → working; a `state:done` event → done. */
 export function AgentStrip({ traces }: { traces: TraceEvent[] }) {
-  const state: Record<string, State> = { Yard: 'pending', Gate: 'pending', Vessel: 'pending', Fees: 'pending' }
+  const state: Record<string, State> = { Yard: 'pending', Gate: 'pending', Vessel: 'pending', Movement: 'pending', Fees: 'pending' }
   for (const t of traces) {
     const a = t.data?.agent
     if (!a || !(a in state)) continue

@@ -48,6 +48,12 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   play: <path d="M8 5.5l10 6.5-10 6.5z" />,
+  movement: (
+    <>
+      <path d="M3 8h12l-3-3M3 8l3 3" />
+      <path d="M21 16H9l3 3M21 16l-3-3" />
+    </>
+  ),
   info: (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -85,5 +91,6 @@ export const AGENT_ICON: Record<string, string> = {
   Yard: 'yard',
   Gate: 'gate',
   Vessel: 'vessel',
+  Movement: 'movement',
   Fees: 'fees',
 }

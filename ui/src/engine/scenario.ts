@@ -12,6 +12,10 @@ export interface RawMockState {
     manifests: { vessel_id: string; terminal: string; discharge_window: string; discharge_count: number; confirmed: boolean }[]
   }
   as400: { fee_schedule: { code: string; unit: string; amount: number; currency: string }[] }
+  ecs: {
+    equipment: { id: string; type: string; utilization_pct: number; status: string }[]
+    movement: { total_moves: number; unnecessary_shuffles: number; avg_utilization_pct: number; cycle_time_min: number }
+  }
 }
 
 export const SCENARIO_META = {
@@ -70,5 +74,14 @@ const SEED: RawMockState = {
       { code: 'STORAGE', unit: 'container/day', amount: 12.0, currency: 'USD' },
       { code: 'CONGESTION_SURCHARGE', unit: 'container', amount: 8.0, currency: 'USD' },
     ],
+  },
+  ecs: {
+    equipment: [
+      { id: 'RTG-1', type: 'Yard crane', utilization_pct: 110, status: 'overloaded' },
+      { id: 'RTG-2', type: 'Yard crane', utilization_pct: 98, status: 'busy' },
+      { id: 'RS-3', type: 'Reach stacker', utilization_pct: 34, status: 'idle' },
+      { id: 'RS-4', type: 'Reach stacker', utilization_pct: 28, status: 'idle' },
+    ],
+    movement: { total_moves: 496, unnecessary_shuffles: 96, avg_utilization_pct: 68, cycle_time_min: 42 },
   },
 }

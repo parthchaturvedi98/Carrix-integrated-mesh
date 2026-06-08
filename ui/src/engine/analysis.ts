@@ -45,6 +45,8 @@ export function detectCollision(s: Snapshot): Conflict {
   const congested = overflow.length > 0
   const detected = surge && (apptExceeds || congested)
   const focusVessel = s.vessels.find((v) => v.terminal === terminal && v.discharge_window === window)
+  const mv = s.movement
+  const idleEquip = (s.equipment ?? []).filter((e) => e.utilization_pct < 40).length
 
   const summary = detected
     ? `T18 collision: ${total} containers discharging at ${terminal} in ${window} collide with a ` +
@@ -67,7 +69,26 @@ export function detectCollision(s: Snapshot): Conflict {
       overflow_blocks: overflow,
       yard_congested: congested,
       vessel_confirmed: Boolean(focusVessel?.confirmed),
+      moves: mv?.total_moves,
+      shuffles: mv?.unnecessary_shuffles,
+      idle_equipment: s.equipment ? idleEquip : undefined,
+      avg_utilization: mv?.avg_utilization_pct,
+      cycle_time: mv?.cycle_time_min,
     },
+  }
+}
+
+// Optimized equipment-dispatch target (route optimization + task allocation): removes most
+// redundant shuffles, balances utilization, and cuts cycle time.
+export function optimizeMovement(m: {
+  total_moves: number; unnecessary_shuffles: number; avg_utilization_pct: number; cycle_time_min: number
+}) {
+  const shuffles = Math.round(m.unnecessary_shuffles * 0.25)
+  return {
+    total_moves: m.total_moves - (m.unnecessary_shuffles - shuffles),
+    unnecessary_shuffles: shuffles,
+    avg_utilization_pct: 84,
+    cycle_time_min: Math.round(m.cycle_time_min * 0.83),
   }
 }
 
@@ -150,6 +171,17 @@ export function computeOutcomes(
         { label: 'Appointment demand vs slots', before: `${initial.appointment_demand}/${initial.appointment_slots}`, after: `${latest.appointment_demand}/${latest.appointment_slots}`, achieved: latest.appointment_demand <= latest.appointment_slots && initial.appointment_demand > initial.appointment_slots },
       ],
       benefits: ['15-30% lower truck wait time', '10-20% better appointment adherence', '5-10% fewer congestion delays'],
+    },
+    {
+      use_case: 'Container movement optimization',
+      kpis: [
+        { label: 'Total container moves', before: `${initial.moves ?? 0}`, after: `${latest.moves ?? 0}`, achieved: (latest.moves ?? 0) < (initial.moves ?? 0) },
+        { label: 'Unnecessary shuffles', before: `${initial.shuffles ?? 0}`, after: `${latest.shuffles ?? 0}`, achieved: (latest.shuffles ?? 0) < (initial.shuffles ?? 0) },
+        { label: 'Equipment utilization (avg)', before: `${initial.avg_utilization ?? 0}%`, after: `${latest.avg_utilization ?? 0}%`, achieved: (latest.avg_utilization ?? 0) > (initial.avg_utilization ?? 0) },
+        { label: 'Idle yard cranes', before: `${initial.idle_equipment ?? 0}`, after: `${latest.idle_equipment ?? 0}`, achieved: (latest.idle_equipment ?? 0) < (initial.idle_equipment ?? 0) },
+        { label: 'Cycle time per move', before: `${initial.cycle_time ?? 0} min`, after: `${latest.cycle_time ?? 0} min`, achieved: (latest.cycle_time ?? 0) < (initial.cycle_time ?? 0) },
+      ],
+      benefits: ['10-20% fewer moves', '5-15% higher equipment utilization', '5-10% lower fuel/energy use'],
     },
     {
       use_case: 'Cost & demurrage impact',
