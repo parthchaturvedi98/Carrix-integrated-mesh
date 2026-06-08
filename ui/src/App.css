@@ -134,7 +134,7 @@
 .banner-info { background: var(--accent-soft); border: 1px solid #c4d8fb; color: var(--accent); }
 
 /* orchestrator bar + stepper */
-.orch { border-left: 4px solid var(--accent); }
+.orch { border-left: 4px solid var(--accent); position: sticky; top: 10px; z-index: 5; box-shadow: var(--shadow-md); }
 .orch-head { display: flex; align-items: center; gap: 12px; }
 .orch-logo { width: 34px; height: 34px; display: grid; place-items: center; font-size: 18px; background: var(--accent); color: #fff; border-radius: 9px; flex: none; }
 .orch-title { display: flex; flex-direction: column; line-height: 1.2; }
