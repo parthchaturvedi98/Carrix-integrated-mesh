@@ -85,16 +85,18 @@ function applyAction(action: Action): void {
 }
 
 async function runPipeline(run: RunState): Promise<void> {
-  await sleep(60)
-  addTrace(run, 'start', 'info', 'Orchestrator run started', { llm_mode: 'fallback' })
-  await sleep(150)
-  addTrace(run, 'ingest', 'info', 'Reading current state from all source systems')
-  await sleep(450)
+  await sleep(300)
+  addTrace(run, 'start', 'info', 'Orchestrator run started — ingesting the four source systems', { llm_mode: 'fallback' })
+  await sleep(700)
+  addTrace(run, 'ingest', 'info', 'Reading current state from TOS, eModal, AIS, AS/400 and ECS')
+  await sleep(1400)
   run.snapshot = ingest()
-  addTrace(run, 'ingest', 'info', 'Reconciled snapshot written to world model', {
+  addTrace(run, 'ingest', 'info', 'Reconciled all systems into one shared world model', {
     vessels: run.snapshot.vessels.length, yard_blocks: run.snapshot.yard_blocks.length, appointments: run.snapshot.appointments.length,
   })
-  await sleep(350)
+  await sleep(1000)
+  addTrace(run, 'reason', 'info', 'Reasoning over the reconciled state — correlating plan vs reality across silos')
+  await sleep(1600)
   const conflict = A.detectCollision(run.snapshot)
   run.conflicts.push(conflict)
   addTrace(run, 'reason', conflict.detected ? 'warning' : 'info', conflict.summary,
@@ -107,20 +109,21 @@ async function runPipeline(run: RunState): Promise<void> {
     return
   }
 
-  await sleep(250)
-  addTrace(run, 'fanout', 'info', `Orchestrator fanning out to ${AGENTS.length} worker agents`, { agents: [...AGENTS] })
+  await sleep(1100)
+  addTrace(run, 'fanout', 'info', `Cross-silo collision detected — orchestrator engaging ${AGENTS.length} specialist agents`, { agents: [...AGENTS] })
   const proposals: AgentProposal[] = []
   for (const name of AGENTS) {
     addTrace(run, `agent:${name.toLowerCase()}`, 'info', `${name} agent ${AGENT_TASKS[name]}...`, { agent: name, state: 'start' })
-    await sleep(850)
+    await sleep(1700)
     const p = runAgent(name, run.snapshot)
     proposals.push(p)
     addTrace(run, `agent:${name.toLowerCase()}`, 'info',
       `${name} agent ready - ${p.proposed_actions.length} action(s) proposed`,
       { agent: name, state: 'done', proposal: p })
+    await sleep(300)
   }
 
-  await sleep(350)
+  await sleep(1000)
   const actions: (Action & { agent: string })[] = []
   for (const p of proposals) for (const a of p.proposed_actions) if (a.mutating) actions.push({ ...a, agent: p.agent })
   const proposalId = rid()
@@ -133,14 +136,14 @@ async function runPipeline(run: RunState): Promise<void> {
 
 async function runApply(run: RunState, approved: string[], rejected: string[]): Promise<void> {
   const approvedSet = new Set(approved)
-  await sleep(60)
+  await sleep(300)
   addTrace(run, 'approval', 'info',
     `Human committed per-agent decisions - approved ${approved.length ? approved.join(', ') : 'none'}, ` +
     `rejected ${rejected.length ? rejected.join(', ') : 'none'}`, { approved, rejected })
-  await sleep(200)
+  await sleep(900)
   addTrace(run, 'act', 'info', 'Executing operator-approved write-backs with a HITL token', { approved, rejected })
   for (const action of run.proposal!.plan.actions) {
-    await sleep(320)
+    await sleep(950)
     if (approvedSet.has(action.agent as string)) {
       action.decision = 'approved'
       applyAction(action)
@@ -150,19 +153,19 @@ async function runApply(run: RunState, approved: string[], rejected: string[]): 
       addTrace(run, 'writeback', 'warning', `Skipped ${action.tool} (${action.agent} agent) - operator rejected`, { tool: action.tool, agent: action.agent })
     }
   }
-  await sleep(300)
-  addTrace(run, 'ingest', 'info', 'Reading current state from all source systems')
-  await sleep(350)
+  await sleep(900)
+  addTrace(run, 'ingest', 'info', 'Re-observing: reading the updated state back from the source systems')
+  await sleep(1300)
   run.snapshot = ingest()
-  addTrace(run, 'ingest', 'info', 'Reconciled snapshot written to world model', {
+  addTrace(run, 'ingest', 'info', 'Reconciled the post-write-back state into the world model', {
     vessels: run.snapshot.vessels.length, yard_blocks: run.snapshot.yard_blocks.length, appointments: run.snapshot.appointments.length,
   })
-  await sleep(250)
+  await sleep(1000)
   const conflict = A.detectCollision(run.snapshot)
   run.conflicts.push(conflict)
   addTrace(run, 'reason', conflict.detected ? 'warning' : 'info', conflict.summary,
     { detected: conflict.detected, summary: conflict.summary, detail: conflict.detail })
-  await sleep(150)
+  await sleep(800)
   run.status = !conflict.detected ? 'resolved' : approved.length ? 'applied' : 'rejected'
   addTrace(run, 'done', 'info',
     run.status === 'resolved' ? 'Loop re-observed; collision resolved'

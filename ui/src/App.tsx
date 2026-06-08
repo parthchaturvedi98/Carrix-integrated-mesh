@@ -3,6 +3,7 @@ import './App.css'
 import { api, streamTraces } from './api'
 import { AgentStrip } from './components/AgentStrip'
 import { ConflictPanel } from './components/ConflictPanel'
+import { OrchestratorBar } from './components/OrchestratorBar'
 import { OutcomesPanel } from './components/OutcomesPanel'
 import { Icon } from './components/icons'
 import { ProposalCard } from './components/ProposalCard'
@@ -184,17 +185,8 @@ export default function App() {
       {phase !== 'idle' && (
         <main className="grid">
           <div className="col-main">
-            {conflict ? (
-              <ConflictPanel conflict={conflict} />
-            ) : (
-              <section className="panel running-card">
-                <span className="spinner big" />
-                <div>
-                  <h2>Reconciling source systems…</h2>
-                  <p>{lastStep ? lastStep.message : 'Ingesting current state from all four systems.'}</p>
-                </div>
-              </section>
-            )}
+            <OrchestratorBar phase={phase} traces={traces} />
+            {conflict && <ConflictPanel conflict={conflict} />}
 
             {proposals.length > 0 && (
               <>

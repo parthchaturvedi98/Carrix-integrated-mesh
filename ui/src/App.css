@@ -133,6 +133,25 @@
 .banner-warn { background: var(--warn-soft); border: 1px solid #f0d6a8; color: var(--warn); }
 .banner-info { background: var(--accent-soft); border: 1px solid #c4d8fb; color: var(--accent); }
 
+/* orchestrator bar + stepper */
+.orch { border-left: 4px solid var(--accent); }
+.orch-head { display: flex; align-items: center; gap: 12px; }
+.orch-logo { width: 34px; height: 34px; display: grid; place-items: center; font-size: 18px; background: var(--accent); color: #fff; border-radius: 9px; flex: none; }
+.orch-title { display: flex; flex-direction: column; line-height: 1.2; }
+.orch-title strong { color: var(--text-strong); font-size: 14px; }
+.orch-sub { color: var(--muted); font-size: 11px; }
+.orch-now { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; max-width: 55%; }
+.orch-msg { color: var(--text); font-size: 12.5px; }
+.orch-steps { list-style: none; display: flex; gap: 6px; margin: 14px 0 0; padding: 0; flex-wrap: wrap; }
+.orch-step { display: flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); }
+.orch-dot { width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; background: var(--line); color: var(--muted); }
+.orch-step.done { border-color: #b6e3c5; background: var(--ok-soft); color: var(--ok); }
+.orch-step.done .orch-dot { background: var(--ok); color: #fff; }
+.orch-step.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.orch-step.active .orch-dot { background: var(--accent); color: #fff; }
+.orch-step.active .orch-label { animation: pulse 1.3s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+
 /* running card */
 .running-card { display: flex; align-items: center; gap: 16px; }
 .running-card h2 { margin: 0 0 2px; font-size: 16px; color: var(--text-strong); }
