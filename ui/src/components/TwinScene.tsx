@@ -1,23 +1,23 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, OrbitControls } from '@react-three/drei'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Mesh } from 'three'
 import type { Snapshot, YardBlock } from '../types'
 
 const MAX_H = 3 // visual height (world units) representing full block capacity
 
-// One yard block rendered as an animated stack: occupied (slate) + planned-that-fits (blue) +
-// over-capacity overflow (red, rising above the capacity marker). Heights ease toward target so
-// the twin visibly rebalances when the plan changes.
-function Block({ b, plan, x, z }: { b: YardBlock; plan: number; x: number; z: number }) {
+// One yard block: occupied (slate) + planned-that-fits (blue) + over-capacity overflow (red,
+// rising above the capacity marker). Heights ease toward the active assignment, so when the
+// assignment switches from the "before" plan to the resolved plan the towers visibly rebalance.
+function Block({ b, assigned, x, z }: { b: YardBlock; assigned: number; x: number; z: number }) {
   const cap = b.capacity
   const free = cap - b.occupied
-  const planFit = Math.min(plan, free)
-  const over = Math.max(0, plan - free)
-  const tOcc = (b.occupied / cap) * MAX_H
-  const tPlan = (planFit / cap) * MAX_H
-  const tOver = (over / cap) * MAX_H
-
+  const h = (a: number) => ({
+    occ: (b.occupied / cap) * MAX_H,
+    plan: (Math.min(a, free) / cap) * MAX_H,
+    over: (Math.max(0, a - free) / cap) * MAX_H,
+  })
+  const t = h(assigned)
   const cur = useRef({ occ: 0.001, plan: 0.001, over: 0.001 })
   const occRef = useRef<Mesh>(null)
   const planRef = useRef<Mesh>(null)
@@ -26,9 +26,9 @@ function Block({ b, plan, x, z }: { b: YardBlock; plan: number; x: number; z: nu
 
   useFrame(() => {
     const c = cur.current
-    c.occ += (tOcc - c.occ) * 0.12
-    c.plan += (tPlan - c.plan) * 0.12
-    c.over += (tOver - c.over) * 0.12
+    c.occ += (t.occ - c.occ) * 0.1
+    c.plan += (t.plan - c.plan) * 0.1
+    c.over += (t.over - c.over) * 0.1
     if (occRef.current) { occRef.current.scale.y = Math.max(c.occ, 0.001); occRef.current.position.y = c.occ / 2 }
     if (planRef.current) { planRef.current.scale.y = Math.max(c.plan, 0.001); planRef.current.position.y = c.occ + c.plan / 2 }
     if (overRef.current) { overRef.current.scale.y = Math.max(c.over, 0.001); overRef.current.position.y = c.occ + c.plan + c.over / 2 }
@@ -43,10 +43,9 @@ function Block({ b, plan, x, z }: { b: YardBlock; plan: number; x: number; z: nu
       <mesh ref={occRef}><boxGeometry args={[w, 1, w]} /><meshStandardMaterial color="#64748b" /></mesh>
       <mesh ref={planRef}><boxGeometry args={[w, 1, w]} /><meshStandardMaterial color="#2563eb" /></mesh>
       <mesh ref={overRef}><boxGeometry args={[w, 1, w]} /><meshStandardMaterial color="#dc2626" /></mesh>
-      {/* capacity marker line */}
       <mesh position={[0, MAX_H, 0]}><boxGeometry args={[w + 0.22, 0.03, w + 0.22]} /><meshStandardMaterial color="#94a3b8" /></mesh>
       <Html position={[0, MAX_H + 0.7, 0]} center distanceFactor={14}>
-        <div className="twin-label">{b.block}<br />{b.occupied}/{b.capacity}{plan ? ` +${plan}` : ''}</div>
+        <div className="twin-label">{b.block}<br />{b.occupied}/{b.capacity}{assigned ? ` +${assigned}` : ''}</div>
       </Html>
     </group>
   )
@@ -62,17 +61,13 @@ function Crane({ x, z }: { x: number; z: number }) {
   )
 }
 
-function Yard({ blocks, plan }: { blocks: YardBlock[]; plan: Map<string, number> }) {
-  // group blocks by terminal into rows
+function Yard({ blocks, assignedFor }: { blocks: YardBlock[]; assignedFor: (block: string) => number }) {
   const terminals = Array.from(new Set(blocks.map((b) => b.terminal)))
   const placed: { b: YardBlock; x: number; z: number }[] = []
   terminals.forEach((t, ti) => {
     const row = blocks.filter((b) => b.terminal === t)
     const z = ti * 3.2 - (terminals.length - 1) * 1.6
-    row.forEach((b, i) => {
-      const x = i * 2.2 - (row.length - 1) * 1.1
-      placed.push({ b, x, z })
-    })
+    row.forEach((b, i) => placed.push({ b, x: i * 2.2 - (row.length - 1) * 1.1, z }))
   })
   const minZ = Math.min(...placed.map((p) => p.z))
 
@@ -86,10 +81,9 @@ function Yard({ blocks, plan }: { blocks: YardBlock[]; plan: Map<string, number>
         <meshStandardMaterial color="#dbe2ec" />
       </mesh>
       {placed.map((p) => (
-        <Block key={p.b.block} b={p.b} plan={plan.get(p.b.block) ?? 0} x={p.x} z={p.z} />
+        <Block key={p.b.block} b={p.b} assigned={assignedFor(p.b.block)} x={p.x} z={p.z} />
       ))}
       <Crane x={0} z={minZ} />
-      {/* vessel at the berth edge */}
       <group position={[0, 0, minZ - 3]}>
         <mesh position={[0, 0.6, 0]}><boxGeometry args={[9, 1.2, 2]} /><meshStandardMaterial color="#1f2a44" /></mesh>
         <mesh position={[3, 1.6, 0]}><boxGeometry args={[1.6, 0.8, 1.6]} /><meshStandardMaterial color="#33415e" /></mesh>
@@ -99,17 +93,48 @@ function Yard({ blocks, plan }: { blocks: YardBlock[]; plan: Map<string, number>
   )
 }
 
-export default function TwinScene({ snapshot }: { snapshot: { yard_blocks: YardBlock[]; storage_plan: Snapshot['storage_plan'] } }) {
-  const plan = new Map<string, number>()
+export default function TwinScene({
+  snapshot, fromPlan,
+}: {
+  snapshot: { yard_blocks: YardBlock[]; storage_plan: Snapshot['storage_plan'] }
+  fromPlan?: Record<string, number>
+}) {
+  const toPlan = new Map<string, number>()
   for (const item of snapshot.storage_plan?.sequence ?? []) {
-    plan.set(item.block, (plan.get(item.block) ?? 0) + item.containers)
+    toPlan.set(item.block, (toPlan.get(item.block) ?? 0) + item.containers)
   }
+
+  // before -> after replay: when a "before" plan is supplied (post-resolution), hold the
+  // congested state briefly, then morph to the resolved plan. A Replay button re-triggers it.
+  const hasTransition = !!fromPlan && Object.keys(fromPlan).length > 0
+  const [morphed, setMorphed] = useState(!hasTransition)
+  const [nonce, setNonce] = useState(0)
+  useEffect(() => {
+    if (!hasTransition) { setMorphed(true); return }
+    setMorphed(false)
+    const id = setTimeout(() => setMorphed(true), 1600)
+    return () => clearTimeout(id)
+  }, [hasTransition, nonce])
+
+  const assignedFor = (block: string) =>
+    morphed ? (toPlan.get(block) ?? 0) : (fromPlan?.[block] ?? 0)
+
   return (
     <div className="twin-wrap">
       <Canvas shadows camera={{ position: [7, 8, 11], fov: 45 }} dpr={[1, 2]}>
-        <Yard blocks={snapshot.yard_blocks} plan={plan} />
+        <Yard blocks={snapshot.yard_blocks} assignedFor={assignedFor} />
         <OrbitControls enableDamping target={[0, 1.4, 0]} maxPolarAngle={Math.PI / 2.1} minDistance={6} maxDistance={26} />
       </Canvas>
+
+      {hasTransition && (
+        <div className="twin-caption">
+          <span className={`twin-phase ${morphed ? '' : 'on'}`}>Before: congested</span>
+          <span className="twin-phase-sep">to</span>
+          <span className={`twin-phase ${morphed ? 'on' : ''}`}>After: rebalanced</span>
+          <button className="btn-sm" onClick={() => setNonce((n) => n + 1)}>Replay</button>
+        </div>
+      )}
+
       <div className="twin-legend">
         <span><i className="sw sw-occ" /> occupied</span>
         <span><i className="sw sw-plan" /> planned discharge</span>

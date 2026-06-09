@@ -146,6 +146,11 @@
 .twin-label.vessel { color: #fff; background: rgba(31,42,68,.92); border-color: #33415e; }
 .twin-legend { position: absolute; left: 14px; bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 9px; padding: 7px 12px; font-size: 11.5px; color: var(--muted); }
 .twin-hint { color: var(--muted); font-style: italic; }
+.twin-caption { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; box-shadow: var(--shadow-sm); font-size: 12px; }
+.twin-phase { color: var(--muted); font-weight: 600; transition: color .3s; }
+.twin-phase.on { color: var(--accent); }
+.twin-phase-sep { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+.twin-caption .btn-sm { padding: 3px 10px; }
 
 /* orchestrator bar + stepper */
 .orch { border-left: 4px solid var(--accent); position: sticky; top: 10px; z-index: 5; box-shadow: var(--shadow-md); }

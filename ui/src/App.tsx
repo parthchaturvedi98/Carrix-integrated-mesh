@@ -149,6 +149,10 @@ export default function App() {
   // data for the 3D twin: the live snapshot once a run exists, else the seeded yard from sources
   const twinSnapshot = view?.snapshot
     ?? (sources ? { yard_blocks: sources.tos.yard_blocks, storage_plan: sources.tos.storage_plan } : null)
+  // "before" plan for the post-resolution replay = the initial over-capacity assignments
+  const twinFromPlan = phase === 'done' && view?.initial_conflict
+    ? Object.fromEntries(view.initial_conflict.detail.overflow_blocks.map((o) => [o.block, o.assigned]))
+    : undefined
 
   return (
     <div className="app">
@@ -197,7 +201,7 @@ export default function App() {
 
       {tab === 'twin' && (
         twinSnapshot
-          ? <Suspense fallback={<div className="twin-loading">Loading 3D twin…</div>}><TwinScene snapshot={twinSnapshot} /></Suspense>
+          ? <Suspense fallback={<div className="twin-loading">Loading 3D twin…</div>}><TwinScene snapshot={twinSnapshot} fromPlan={twinFromPlan} /></Suspense>
           : <div className="twin-loading">Run the loop or reset to load the yard.</div>
       )}
 
