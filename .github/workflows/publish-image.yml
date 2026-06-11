@@ -32,6 +32,7 @@ jobs:
         with:
           context: .
           push: true
+          no-cache: true
           # image name must be lowercase for GHCR
           tags: |
             ghcr.io/parthchaturvedi98/carrix-integrated-mesh:latest
