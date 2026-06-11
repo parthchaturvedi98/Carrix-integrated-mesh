@@ -325,57 +325,85 @@
 .schema-hint li { margin: 2px 0; }
 .schema-hint code { font-size: 11.5px; background: var(--bg); padding: 1px 4px; border-radius: 4px; }
 
-/* medallion report */
-.med-report {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+/* ── Medallion files-ready ───────────────────────────────────────────────────── */
+.med-files-ready { display: flex; flex-direction: column; gap: 14px; }
+.med-files-header {
+  display: flex; align-items: center; gap: 12px;
 }
-.med-report-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;
-}
-.med-report-header h2 { margin: 0; font-size: 16px; color: var(--text-strong); }
+.med-files-header strong { font-size: 14px; color: var(--text-strong); display: block; }
+.med-files-sub { font-size: 12px; color: var(--muted); margin-top: 2px; display: block; }
+.med-files-header .btn { margin-left: auto; }
 
-.med-flow {
-  display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;
+.med-file-list-preview {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 4px;
 }
-.med-arrow { font-size: 22px; color: var(--muted); padding-top: 36px; flex-shrink: 0; }
+.med-file-list-preview li {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12.5px; padding: 5px 10px;
+  background: var(--bg); border-radius: 6px; border: 1px solid var(--line);
+}
+.med-file-list-preview code { font-size: 12px; color: var(--text); }
+.med-file-size { font-size: 11.5px; color: var(--muted); flex-shrink: 0; margin-left: 8px; }
+.med-start-btn { align-self: flex-start; margin-top: 4px; }
 
-.med-layer {
-  flex: 1; min-width: 200px; background: var(--bg); border-radius: 10px; padding: 14px;
-  border: 1px solid var(--line);
+/* ── Medallion pipeline stages ───────────────────────────────────────────────── */
+.med-pipeline { display: flex; flex-direction: column; gap: 18px; }
+.med-pipeline-header {
+  display: flex; align-items: center; gap: 12px;
 }
+.med-pipeline-header strong { font-size: 14px; color: var(--text-strong); display: block; }
+.med-pipeline-header .spinner,
+.med-pipeline-header .pill { margin-left: auto; }
+
+.med-stages { display: flex; flex-direction: column; gap: 0; }
+
+.med-stage {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px; border-radius: 10px;
+  border: 1px solid transparent;
+  transition: background .2s, border-color .2s;
+  position: relative;
+}
+/* connector line between stages */
+.med-stage:not(:last-child)::after {
+  content: ''; position: absolute; left: 27px; bottom: -12px;
+  width: 2px; height: 12px; background: var(--line);
+}
+
+.med-stage-done    { background: var(--ok-soft); border-color: var(--ok); }
+.med-stage-running { background: #eff6ff; border-color: var(--accent); }
+.med-stage-pending { background: var(--bg); border-color: var(--line); opacity: .6; }
+
+.med-stage-icon {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.med-stage-done    .med-stage-icon { background: var(--ok); color: #fff; }
+.med-stage-running .med-stage-icon { background: var(--accent); color: #fff; }
+.med-stage-pending .med-stage-icon { background: var(--line); }
+
+.med-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: block; }
+
+.med-stage-body { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 3px; }
+
 .med-badge {
   display: inline-block; color: #fff; font-size: 10.5px; font-weight: 700;
-  padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: .04em;
-  margin-bottom: 8px;
+  padding: 2px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .05em;
+  flex-shrink: 0;
 }
-.med-layer-body { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-.med-layer-body strong { color: var(--text-strong); font-size: 13.5px; }
+.med-badge-bronze { background: #92400e; }
+.med-badge-silver { background: #475569; }
+.med-badge-gold   { background: #b45309; }
 
-.med-file-list { margin: 4px 0 0 0; padding: 0; list-style: none; }
-.med-file-list li { font-size: 12px; color: var(--muted); padding: 2px 0; }
-.med-file-list code { font-size: 11.5px; }
+.med-stage-detail { font-size: 12.5px; color: var(--text); }
+.med-stage-done .med-stage-detail   { color: var(--ok); }
+.med-stage-running .med-stage-detail { color: var(--accent); font-weight: 500; }
 
-.med-ok { color: var(--ok); font-size: 12.5px; }
-.med-warn { color: #b45309; font-size: 12.5px; }
-.med-issue {
-  background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
-  font-size: 11.5px; padding: 4px 8px; color: #78350f; margin-top: 4px;
-}
-.med-issue code { font-size: 11px; }
-.med-issue-more { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
-
-.med-summary-table { border-collapse: collapse; font-size: 12.5px; width: 100%; margin-top: 4px; }
-.med-summary-table td { padding: 3px 0; }
-.med-summary-table td:last-child { text-align: right; font-weight: 600; color: var(--text-strong); }
-
-.med-errors {
-  margin-top: 14px; background: var(--alert-soft); border: 1px solid var(--alert);
-  border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: var(--alert);
-}
-.med-ready-banner {
-  margin-top: 16px; background: var(--ok-soft); border: 1px solid var(--ok);
-  border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--ok);
-  font-weight: 500;
+.med-done-msg {
+  background: var(--ok-soft); border: 1px solid var(--ok); border-radius: 8px;
+  padding: 11px 16px; font-size: 13px; font-weight: 500; color: var(--ok);
 }
 
 /* ── Data Quality Agent ──────────────────────────────────────────────────────── */
