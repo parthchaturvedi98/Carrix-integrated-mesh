@@ -95,8 +95,8 @@ export function MedallionUploader({ onStarted, onLoaded }: Props) {
           />
           <div className="drop-inner">
             <span className="drop-icon"><Icon name="mesh" /></span>
-            <strong>Drop scenario files here</strong>
-            <span className="drop-hint">CSV or JSON · click to browse</span>
+            <strong>Upload your terminal data files</strong>
+            <span className="drop-hint">CSV or JSON · drag and drop or click to browse</span>
           </div>
         </div>
         <details className="schema-hint">
