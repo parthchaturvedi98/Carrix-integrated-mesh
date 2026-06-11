@@ -112,6 +112,7 @@
 .decide { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
 .decide-label { color: var(--muted); font-size: 12px; flex: 1; }
 .decide.muted-note { color: var(--muted); font-size: 12px; font-style: italic; }
+.decide.auto-approved-note { display: flex; align-items: center; gap: 6px; color: var(--ok); font-size: 12px; font-weight: 500; }
 .card-pick-approve { border-color: #9fd9b4; }
 .card-pick-reject { border-color: #f1b4b4; }
 .card-approved { border-color: #9fd9b4; box-shadow: 0 0 0 1px #cdeed8 inset, var(--shadow-sm); }
@@ -129,9 +130,10 @@
 .approval-actions { display: flex; gap: 10px; }
 
 .banner { display: flex; align-items: center; gap: 9px; padding: 12px 16px; border-radius: 10px; font-weight: 600; }
-.banner-ok { background: var(--ok-soft); border: 1px solid #b6e3c5; color: var(--ok); }
-.banner-warn { background: var(--warn-soft); border: 1px solid #f0d6a8; color: var(--warn); }
+.banner-ok   { background: var(--ok-soft);     border: 1px solid #b6e3c5; color: var(--ok); }
+.banner-warn { background: var(--warn-soft);   border: 1px solid #f0d6a8; color: var(--warn); }
 .banner-info { background: var(--accent-soft); border: 1px solid #c4d8fb; color: var(--accent); }
+.banner-auto { background: #f0fdf4; border: 1px solid #86efac; color: #166534; font-weight: 500; font-size: 13px; }
 
 /* tabs */
 .tabs { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
@@ -220,6 +222,7 @@
 .silo-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
 .silo-lines li { color: #455066; }
 .silo-flag { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 11.5px; color: var(--warn); background: var(--warn-soft); border: 1px solid #f0d6a8; border-radius: 8px; padding: 7px 9px; }
+.silo-ok   { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 11.5px; color: var(--ok);   background: var(--ok-soft);   border: 1px solid #b6e3c5; border-radius: 8px; padding: 7px 9px; }
 
 /* agent strip */
 .agent-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }

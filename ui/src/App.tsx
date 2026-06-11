@@ -152,14 +152,33 @@ export default function App() {
   const outcomeByAgent: Record<string, 'approved' | 'rejected'> = {}
   for (const a of actions) if (a.decision && a.agent) outcomeByAgent[a.agent] = a.decision
 
+  // Agents with confidence > 80 are auto-approved; ≤ 80 require human review
+  const autoApprovedSet = useMemo<Set<string>>(() => new Set(
+    proposals
+      .filter((p) => p.proposed_actions.some((a) => a.mutating) && (p.confidence ?? 0) > 80)
+      .map((p) => p.agent as string)
+  ), [proposals])
+  const hitlAgents = mutatingAgents.filter((a) => !autoApprovedSet.has(a as string))
+
+  // Pre-populate decisions for auto-approved agents when entering awaiting
+  useEffect(() => {
+    if (phase === 'awaiting' && autoApprovedSet.size > 0) {
+      setDecisions((prev) => {
+        const next = { ...prev }
+        autoApprovedSet.forEach((a: string) => { if (!next[a]) next[a] = 'approve' })
+        return next
+      })
+    }
+  }, [phase, autoApprovedSet])
+
   const lastStep = traces.length ? traces[traces.length - 1] : null
-  const decidedCount = mutatingAgents.filter((a) => decisions[a]).length
+  const decidedCount = hitlAgents.filter((a) => decisions[a]).length
   const approvedCount = mutatingAgents.filter((a) => decisions[a] === 'approve').length
-  const allDecided = mutatingAgents.length > 0 && decidedCount === mutatingAgents.length
+  const allDecided = hitlAgents.length === 0 || (hitlAgents.length > 0 && decidedCount === hitlAgents.length)
   const rejectedAgents = Object.entries(outcomeByAgent).filter(([, d]) => d === 'rejected').map(([a]) => a)
 
   const setDecision = (agent: string, d: Decision) => setDecisions((p) => ({ ...p, [agent]: d }))
-  const setAll = (d: Decision) => setDecisions(Object.fromEntries(mutatingAgents.map((a) => [a, d])))
+  const setAll = (d: Decision) => setDecisions(Object.fromEntries(hitlAgents.map((a) => [a, d])))
 
   // data for the 3D twin: the live snapshot once a run exists, else the seeded yard from sources
   const twinSnapshot = view?.snapshot
@@ -242,24 +261,38 @@ export default function App() {
               <>
                 <div className="section-bar">
                   <h2 className="section-title">
-                    Agent proposals — your call on each
+                    Agent proposals
                     {phase === 'running' && <span className="live-count"> · {proposals.length} in…</span>}
+                    {phase === 'awaiting' && hitlAgents.length > 0 && (
+                      <span className="live-count"> · {hitlAgents.length} need{hitlAgents.length === 1 ? 's' : ''} your review</span>
+                    )}
                   </h2>
-                  {phase === 'awaiting' && (
+                  {phase === 'awaiting' && hitlAgents.length > 0 && (
                     <div className="bulk">
                       <button className="btn-sm reject" onClick={() => setAll('reject')}>Reject all</button>
                       <button className="btn-sm approve" onClick={() => setAll('approve')}>Approve all</button>
                     </div>
                   )}
                 </div>
+                {phase === 'awaiting' && autoApprovedSet.size > 0 && (
+                  <div className="banner banner-auto">
+                    <Icon name="check" />
+                    <strong>Auto-approved ({autoApprovedSet.size}):</strong>{' '}
+                    {[...autoApprovedSet].map((a) => {
+                      const conf = proposals.find((p) => p.agent === a)?.confidence
+                      return `${a}${conf != null ? ` (${conf}%)` : ''}`
+                    }).join(', ')} — confidence above 80%, write-backs queued.
+                  </div>
+                )}
                 <div className="cards">
                   {proposals.map((p) => (
                     <ProposalCard
                       key={p.agent}
                       p={p}
                       decision={decisions[p.agent]}
-                      onDecide={phase === 'running' || phase === 'awaiting' ? setDecision : undefined}
+                      onDecide={phase === 'awaiting' && !autoApprovedSet.has(p.agent) ? setDecision : undefined}
                       outcome={phase === 'applying' || phase === 'done' ? outcomeByAgent[p.agent] : undefined}
+                      autoApproved={phase === 'awaiting' && autoApprovedSet.has(p.agent)}
                     />
                   ))}
                 </div>
@@ -272,10 +305,12 @@ export default function App() {
             {phase === 'awaiting' && view?.proposal && (
               <div className="approval-bar">
                 <div className="approval-text">
-                  <strong>Human-in-the-loop — review the twin forecast, then approve each write-back.</strong>
+                  <strong>Human-in-the-loop — review the twin forecast, then decide on low-confidence write-backs.</strong>
                   <span>
-                    {decidedCount}/{mutatingAgents.length} decided ({approvedCount} approved). Only approved
-                    actions are written back to the real systems; nothing changes until you commit.
+                    {hitlAgents.length > 0
+                      ? `${decidedCount}/${hitlAgents.length} reviewed · ${autoApprovedSet.size} auto-approved. `
+                      : `All ${autoApprovedSet.size} write-backs auto-approved (confidence > 80%). `}
+                    Nothing changes until you commit.
                   </span>
                 </div>
                 <div className="approval-actions">

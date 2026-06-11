@@ -89,18 +89,11 @@ export function SourcesPanel({ sources, populated = true }: { sources: Sources; 
               </div>
 
               {populated ? (
-                <>
-                  <ul className="silo-lines">
-                    {d.lines.map((l, i) => <li key={i}>{l}</li>)}
-                  </ul>
-                  {d.flag && (
-                    <div className="silo-flag"><Icon name="warning" /> {d.flag}</div>
-                  )}
-                </>
+                d.flag
+                  ? <div className="silo-flag"><Icon name="warning" /> {d.flag}</div>
+                  : <div className="silo-ok"><Icon name="check" /> No issues detected</div>
               ) : (
-                <div className="silo-awaiting">
-                  Awaiting feed data
-                </div>
+                <div className="silo-awaiting">Awaiting feed data</div>
               )}
             </div>
           )

@@ -6,6 +6,7 @@ interface Props {
   decision?: Decision
   onDecide?: (agent: string, decision: Decision) => void
   outcome?: 'approved' | 'rejected'
+  autoApproved?: boolean
 }
 
 function ConfidenceBar({ score }: { score: number }) {
@@ -23,9 +24,9 @@ function ConfidenceBar({ score }: { score: number }) {
   )
 }
 
-export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
+export function ProposalCard({ p, decision, onDecide, outcome, autoApproved }: Props) {
   const mutating = p.proposed_actions.some((a) => a.mutating)
-  const showControls = mutating && !!onDecide && !outcome
+  const showControls = mutating && !!onDecide && !outcome && !autoApproved
 
   return (
     <article className={`card ${outcome ? `card-${outcome}` : decision ? `card-pick-${decision}` : ''}`}>
@@ -36,6 +37,8 @@ export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
           <span className={`pill ${outcome === 'approved' ? 'pill-ok' : 'pill-alert'}`}>
             <Icon name={outcome === 'approved' ? 'check' : 'cross'} /> {outcome}
           </span>
+        ) : autoApproved ? (
+          <span className="pill pill-ok pill-auto"><Icon name="check" /> Auto-approved</span>
         ) : !mutating ? (
           <span className="pill pill-muted">compute only</span>
         ) : (
@@ -83,7 +86,12 @@ export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
           >Approve</button>
         </div>
       )}
-      {!mutating && !outcome && (
+      {autoApproved && (
+        <div className="decide auto-approved-note">
+          <Icon name="check" /> Confidence {p.confidence}% — above threshold, write-back auto-approved.
+        </div>
+      )}
+      {!mutating && !outcome && !autoApproved && (
         <div className="decide muted-note">Informational — no write-back to approve.</div>
       )}
     </article>
