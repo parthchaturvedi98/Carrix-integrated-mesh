@@ -127,7 +127,7 @@ export function MedallionUploader({ onStarted, onLoaded }: Props) {
           />
           <div className="drop-inner">
             <span className="drop-icon"><Icon name="mesh" /></span>
-            <strong>Load a Snowflake scenario snapshot</strong>
+            <strong>Load a Snowflake data export</strong>
             <span className="drop-hint">CSV or JSON export · drag and drop or click to browse</span>
           </div>
         </div>
