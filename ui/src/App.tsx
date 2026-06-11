@@ -155,7 +155,7 @@ export default function App() {
   // Agents with confidence > 80 are auto-approved; ≤ 80 require human review
   const autoApprovedSet = useMemo<Set<string>>(() => new Set(
     proposals
-      .filter((p) => p.proposed_actions.some((a) => a.mutating) && (p.confidence ?? 0) > 80)
+      .filter((p) => p.proposed_actions.some((a) => a.mutating) && (p.confidence ?? 0) > 85)
       .map((p) => p.agent as string)
   ), [proposals])
   const hitlAgents = mutatingAgents.filter((a) => !autoApprovedSet.has(a as string))
@@ -281,7 +281,7 @@ export default function App() {
                     {[...autoApprovedSet].map((a) => {
                       const conf = proposals.find((p) => p.agent === a)?.confidence
                       return `${a}${conf != null ? ` (${conf}%)` : ''}`
-                    }).join(', ')} — confidence above 80%, write-backs queued.
+                    }).join(', ')} — confidence above 85%, write-backs queued.
                   </div>
                 )}
                 <div className="cards">
@@ -309,7 +309,7 @@ export default function App() {
                   <span>
                     {hitlAgents.length > 0
                       ? `${decidedCount}/${hitlAgents.length} reviewed · ${autoApprovedSet.size} auto-approved. `
-                      : `All ${autoApprovedSet.size} write-backs auto-approved (confidence > 80%). `}
+                      : `All ${autoApprovedSet.size} write-backs auto-approved (confidence > 85%). `}
                     Nothing changes until you commit.
                   </span>
                 </div>

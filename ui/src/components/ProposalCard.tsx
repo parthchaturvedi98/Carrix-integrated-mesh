@@ -88,7 +88,7 @@ export function ProposalCard({ p, decision, onDecide, outcome, autoApproved }: P
       )}
       {autoApproved && (
         <div className="decide auto-approved-note">
-          <Icon name="check" /> Confidence {p.confidence}% — above threshold, write-back auto-approved.
+          <Icon name="check" /> Confidence {p.confidence}% — above 85% threshold, write-back auto-approved.
         </div>
       )}
       {!mutating && !outcome && !autoApproved && (
