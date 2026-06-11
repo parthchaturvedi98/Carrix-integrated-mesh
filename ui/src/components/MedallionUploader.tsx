@@ -21,11 +21,11 @@ const ACCEPTED = [
   'ais_positions.csv', 'ais_manifests.csv',
   'as400_fees.csv',
   'ecs_equipment.csv', 'ecs_movement.csv',
-  'scenario.json  (full state in one file)',
+  'scenario.json  (full snapshot in one file)',
 ]
 
 const STAGE_META: { key: Stage; label: string; running: string }[] = [
-  { key: 'bronze', label: 'Bronze', running: 'Parsing files and counting rows…' },
+  { key: 'bronze', label: 'Bronze', running: 'Ingesting Snowflake export — parsing tables and counting rows…' },
   { key: 'silver', label: 'Silver', running: 'Validating schema, coercing types, filling nulls…' },
   { key: 'gold',   label: 'Gold',   running: 'Aggregating into engine-ready scenario state…' },
 ]
@@ -127,12 +127,12 @@ export function MedallionUploader({ onStarted, onLoaded }: Props) {
           />
           <div className="drop-inner">
             <span className="drop-icon"><Icon name="mesh" /></span>
-            <strong>Upload your terminal data files</strong>
-            <span className="drop-hint">CSV or JSON · drag and drop or click to browse</span>
+            <strong>Load a Snowflake scenario snapshot</strong>
+            <span className="drop-hint">CSV or JSON export · drag and drop or click to browse</span>
           </div>
         </div>
         <details className="schema-hint">
-          <summary>Accepted file names</summary>
+          <summary>Accepted export file names</summary>
           <ul>{ACCEPTED.map((n) => <li key={n}><code>{n}</code></li>)}</ul>
         </details>
       </div>
@@ -148,7 +148,7 @@ export function MedallionUploader({ onStarted, onLoaded }: Props) {
             <span className="agent-icon"><Icon name="mesh" /></span>
             <div>
               <strong>{files.length} file{files.length !== 1 ? 's' : ''} selected</strong>
-              <span className="med-files-sub">Review then start the processing pipeline</span>
+              <span className="med-files-sub">Snowflake export ready — review then start the pipeline</span>
             </div>
             <button className="btn ghost" onClick={() => { setFiles([]); setStage('idle') }}>
               Change
