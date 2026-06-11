@@ -6,7 +6,6 @@ import { ConflictPanel } from './components/ConflictPanel'
 import { ControlTowerPanel } from './components/ControlTowerPanel'
 import { ForecastPanel } from './components/ForecastPanel'
 import { MedallionUploader } from './components/MedallionUploader'
-import { MedallionReportPanel } from './components/MedallionReport'
 import { OrchestratorBar } from './components/OrchestratorBar'
 import { OutcomesPanel } from './components/OutcomesPanel'
 import { Icon } from './components/icons'
@@ -32,7 +31,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('dashboard')
   const [decisions, setDecisions] = useState<Record<string, Decision>>({})
   const [error, setError] = useState<string | null>(null)
-  const [medallionReport, setMedallionReport] = useState<MedallionReport | null>(null)
+  const [sourcesReady, setSourcesReady] = useState(true) // true = seeded, false while DQ agent runs
   const unsub = useRef<(() => void) | null>(null)
 
   const loadSources = useCallback(() => {
@@ -101,19 +100,22 @@ export default function App() {
       setTraces([])
       setDecisions({})
       setPhase('idle')
-      setMedallionReport(null)
+      setSourcesReady(true)
       loadSources()
     } catch (e) {
       setError(String(e))
     }
   }
 
+  // Called when files are first dropped — hides the tiles while the DQ agent runs
+  const onMedallionStarted = () => setSourcesReady(false)
+
+  // Called when user clicks "Load data into silos" after reviewing the DQ report
   const onMedallionLoaded = async (report: MedallionReport) => {
-    setMedallionReport(report)
-    // Push gold-layer state into the engine then refresh the sources panel
     const extApi = api as typeof api & { loadScenario?: (raw: unknown) => Promise<unknown> }
     if (extApi.loadScenario) await extApi.loadScenario(report.gold.state)
     loadSources()
+    setSourcesReady(true)
   }
 
   // Derive conflict + proposals from the live trace stream so they appear the moment each
@@ -221,10 +223,11 @@ export default function App() {
       {tab === 'dashboard' && phase === 'idle' && (
         <div className="idle-layout">
           <div className="idle-col-main">
-            {medallionReport
-              ? <MedallionReportPanel report={medallionReport} onDismiss={() => setMedallionReport(null)} />
-              : <MedallionUploader onLoaded={onMedallionLoaded} />}
-            {sources && <SourcesPanel sources={sources} />}
+            <MedallionUploader
+              onStarted={onMedallionStarted}
+              onLoaded={onMedallionLoaded}
+            />
+            {sourcesReady && sources && <SourcesPanel sources={sources} />}
           </div>
         </div>
       )}

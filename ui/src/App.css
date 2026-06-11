@@ -377,3 +377,88 @@
   border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--ok);
   font-weight: 500;
 }
+
+/* ── Data Quality Agent ──────────────────────────────────────────────────────── */
+.dq-parsing {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px; font-size: 13.5px; color: var(--muted);
+}
+
+.dq-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 20px; display: flex; flex-direction: column; gap: 16px;
+}
+.dq-panel-report { gap: 20px; }
+
+.dq-agent-header {
+  display: flex; align-items: center; gap: 12px;
+}
+.dq-agent-title { font-size: 14.5px; font-weight: 600; color: var(--text-strong); }
+.dq-agent-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dq-agent-header > .spinner { margin-left: auto; }
+.dq-agent-header > .pill   { margin-left: auto; }
+
+/* streaming steps */
+.dq-steps { display: flex; flex-direction: column; gap: 6px; padding-left: 4px; }
+.dq-step {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--muted); padding: 5px 0;
+  transition: color .2s;
+}
+.dq-step-running { color: var(--text); }
+.dq-step-done    { color: var(--text); }
+.dq-step-icon    { width: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dq-step-dot     { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: inline-block; }
+.dq-step-pending .dq-step-label { color: var(--muted); }
+.dq-step-count   { margin-left: auto; font-size: 11.5px; color: var(--alert); font-weight: 500; }
+
+/* score ring */
+.dq-summary-row {
+  display: flex; align-items: flex-start; gap: 18px; flex-wrap: wrap;
+}
+.dq-score-ring { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+.dq-score-num  { font-size: 11.5px; font-weight: 600; }
+.dq-summary-body { flex: 1; min-width: 0; }
+.dq-summary-text { margin: 0 0 8px; font-size: 13.5px; color: var(--text); line-height: 1.5; }
+.dq-summary-row > .btn { margin-left: auto; align-self: center; flex-shrink: 0; }
+
+.dq-counts { display: flex; gap: 8px; flex-wrap: wrap; }
+.dq-count   { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+.dq-count-critical { background: var(--alert-soft); color: var(--alert); }
+.dq-count-warning  { background: #fef3c7; color: #92400e; }
+.dq-count-info     { background: #eff6ff; color: #1d4ed8; }
+.dq-count-ok       { background: var(--ok-soft); color: var(--ok); }
+
+/* pill variants */
+.pill-alert { background: var(--alert-soft); color: var(--alert); }
+.pill-warn  { background: #fef3c7; color: #92400e; }
+
+/* domains + findings */
+.dq-domains { display: flex; flex-direction: column; gap: 14px; }
+.dq-domain-title {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin-bottom: 6px;
+}
+.dq-finding {
+  border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
+  border-left: 3px solid transparent;
+}
+.dq-finding-critical { background: var(--alert-soft); border-left-color: var(--alert); }
+.dq-finding-warning  { background: #fef9ee; border-left-color: #f59e0b; }
+.dq-finding-info     { background: #eff6ff; border-left-color: #60a5fa; }
+.dq-finding-ok       { background: var(--ok-soft); border-left-color: var(--ok); }
+
+.dq-finding-head {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+}
+.dq-finding-title  { font-size: 13px; font-weight: 600; color: var(--text-strong); }
+.dq-finding-detail { font-size: 12px; color: var(--text); line-height: 1.5; }
+
+.dq-sev-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  padding: 1px 7px; border-radius: 20px; flex-shrink: 0;
+}
+.dq-sev-critical { background: var(--alert); color: #fff; }
+.dq-sev-warning  { background: #f59e0b; color: #fff; }
+.dq-sev-info     { background: #60a5fa; color: #fff; }
+.dq-sev-ok       { background: var(--ok); color: #fff; }
