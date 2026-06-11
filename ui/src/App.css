@@ -348,7 +348,8 @@
 .med-start-btn { align-self: flex-start; margin-top: 4px; }
 
 /* ── Medallion pipeline stages ───────────────────────────────────────────────── */
-.med-pipeline { display: flex; flex-direction: column; gap: 18px; }
+.med-pipeline { display: flex; flex-direction: column; gap: 20px; }
+
 .med-pipeline-header {
   display: flex; align-items: center; gap: 12px;
 }
@@ -356,54 +357,66 @@
 .med-pipeline-header .spinner,
 .med-pipeline-header .pill { margin-left: auto; }
 
-.med-stages { display: flex; flex-direction: column; gap: 0; }
+/* Horizontal track */
+.med-stages {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
 
 .med-stage {
-  display: flex; align-items: flex-start; gap: 14px;
+  display: flex; flex-direction: column; gap: 10px;
   padding: 14px 16px; border-radius: 10px;
-  border: 1px solid transparent;
-  transition: background .2s, border-color .2s;
-  position: relative;
-}
-/* connector line between stages */
-.med-stage:not(:last-child)::after {
-  content: ''; position: absolute; left: 27px; bottom: -12px;
-  width: 2px; height: 12px; background: var(--line);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  transition: background .25s, border-color .25s, opacity .25s;
 }
 
 .med-stage-done    { background: var(--ok-soft); border-color: var(--ok); }
 .med-stage-running { background: #eff6ff; border-color: var(--accent); }
-.med-stage-pending { background: var(--bg); border-color: var(--line); opacity: .6; }
+.med-stage-pending { opacity: .45; }
+
+/* Top row: icon + badge */
+.med-stage-top {
+  display: flex; align-items: center; gap: 9px;
+}
 
 .med-stage-icon {
-  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
 }
 .med-stage-done    .med-stage-icon { background: var(--ok); color: #fff; }
 .med-stage-running .med-stage-icon { background: var(--accent); color: #fff; }
 .med-stage-pending .med-stage-icon { background: var(--line); }
 
-.med-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: block; }
+.med-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: block; }
 
-.med-stage-body { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 3px; }
-
-.med-badge {
-  display: inline-block; color: #fff; font-size: 10.5px; font-weight: 700;
-  padding: 2px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .05em;
-  flex-shrink: 0;
+/* Badge — coloured left border only, no pill */
+.med-stage-label {
+  font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
 }
-.med-badge-bronze { background: #92400e; }
-.med-badge-silver { background: #475569; }
-.med-badge-gold   { background: #b45309; }
+.med-stage-done    .med-stage-label { color: var(--ok); }
+.med-stage-running .med-stage-label { color: var(--accent); }
+.med-stage-pending .med-stage-label { color: var(--muted); }
 
-.med-stage-detail { font-size: 12.5px; color: var(--text); }
-.med-stage-done .med-stage-detail   { color: var(--ok); }
-.med-stage-running .med-stage-detail { color: var(--accent); font-weight: 500; }
+/* Result / status line */
+.med-stage-detail {
+  font-size: 12px; line-height: 1.5; color: var(--muted);
+  padding-left: 33px; /* indent under icon */
+}
+.med-stage-done    .med-stage-detail { color: var(--text); }
+.med-stage-running .med-stage-detail { color: var(--accent); font-style: italic; }
+
+/* Coloured left accent per tier */
+.med-stage-bronze { border-left: 3px solid #b45309; }
+.med-stage-silver { border-left: 3px solid #64748b; }
+.med-stage-gold   { border-left: 3px solid #d97706; }
 
 .med-done-msg {
   background: var(--ok-soft); border: 1px solid var(--ok); border-radius: 8px;
   padding: 11px 16px; font-size: 13px; font-weight: 500; color: var(--ok);
+  text-align: center;
 }
 
 /* ── Data Quality Agent ──────────────────────────────────────────────────────── */

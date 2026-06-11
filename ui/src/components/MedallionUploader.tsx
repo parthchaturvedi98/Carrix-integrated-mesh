@@ -198,17 +198,17 @@ export function MedallionUploader({ onStarted, onLoaded }: Props) {
           const result    = resultMap[s.key]
 
           return (
-            <div key={s.key} className={`med-stage ${isDone ? 'med-stage-done' : isRunning ? 'med-stage-running' : 'med-stage-pending'}`}>
-              <div className="med-stage-icon">
-                {isDone    ? <Icon name="check" />        :
-                 isRunning ? <span className="spinner" /> :
-                             <span className="med-dot" />}
+            <div key={s.key} className={`med-stage med-stage-${s.key} ${isDone ? 'med-stage-done' : isRunning ? 'med-stage-running' : 'med-stage-pending'}`}>
+              <div className="med-stage-top">
+                <div className="med-stage-icon">
+                  {isDone    ? <Icon name="check" />        :
+                   isRunning ? <span className="spinner" /> :
+                               <span className="med-dot" />}
+                </div>
+                <span className="med-stage-label">{s.label}</span>
               </div>
-              <div className="med-stage-body">
-                <span className={`med-stage-badge med-badge-${s.key}`}>{s.label}</span>
-                <span className="med-stage-detail">
-                  {isDone && result ? result : isRunning ? s.running : '—'}
-                </span>
+              <div className="med-stage-detail">
+                {isDone && result ? result : isRunning ? s.running : ''}
               </div>
             </div>
           )
