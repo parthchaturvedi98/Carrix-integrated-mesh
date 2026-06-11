@@ -177,7 +177,7 @@ export function MedallionUploader({ onStarted, onLoaded }: Props) {
 
       {stage === 'done' && (
         <div className="med-done-msg">
-          Process completed — loading data into silos…
+          Process completed — loading feeds into the operating picture…
         </div>
       )}
     </div>

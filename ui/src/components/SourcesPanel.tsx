@@ -1,7 +1,7 @@
 import type { Sources } from '../types'
 import { Icon } from './icons'
 
-const SILO_SHELLS = [
+const SOURCE_FEEDS = [
   { key: 'ais',    icon: 'vessel',   name: 'AIS',    sub: 'vessel positions · manifests' },
   { key: 'emodal', icon: 'gate',     name: 'eModal', sub: 'trucker appointment slots' },
   { key: 'tos',    icon: 'yard',     name: 'TOS',    sub: 'yard occupancy · storage plan' },
@@ -9,20 +9,20 @@ const SILO_SHELLS = [
   { key: 'ecs',    icon: 'movement', name: 'ECS',    sub: 'equipment · IoT telemetry' },
 ]
 
-/** Pre-run view: the five source systems as separate silos.
- *  When `populated` is false the tiles show their headers only — data is
- *  revealed after the Data Quality Agent approves the uploaded files. */
+/** Pre-run view: the five source system feeds, each read by a specialist agent.
+ *  When `populated` is false the tiles show headers only — feeds are revealed
+ *  once files are loaded through the medallion pipeline. */
 export function SourcesPanel({ sources, populated = true }: { sources: Sources; populated?: boolean }) {
   const focus = sources.scenario.focus_window
   const term  = sources.scenario.terminal
 
-  const manifest   = sources.ais.manifests.find((m) => m.terminal === term && m.discharge_window === focus)
-  const appt       = sources.emodal.appointments.find((a) => a.terminal === term && a.window === focus)
-  const termBlocks = sources.tos.yard_blocks.filter((b) => b.terminal === term)
+  const manifest    = sources.ais.manifests.find((m) => m.terminal === term && m.discharge_window === focus)
+  const appt        = sources.emodal.appointments.find((a) => a.terminal === term && a.window === focus)
+  const termBlocks  = sources.tos.yard_blocks.filter((b) => b.terminal === term)
   const tightBlocks = termBlocks.filter((b) => b.occupied / b.capacity >= 0.85)
 
-  type SiloData = { lines: string[]; flag: string | null }
-  const data: Record<string, SiloData> = {
+  type FeedData = { lines: string[]; flag: string | null }
+  const data: Record<string, FeedData> = {
     ais: {
       lines: sources.ais.manifests.map(
         (m) => `${m.vessel_id} → ${m.terminal}: ${m.discharge_count} containers (${m.discharge_window})`,
@@ -66,26 +66,25 @@ export function SourcesPanel({ sources, populated = true }: { sources: Sources; 
   return (
     <section className="sources">
       <div className="sources-intro">
-        <h2>Five source systems · five silos</h2>
+        <h2>Five source systems · one operating picture</h2>
         <p>
-          Each system below holds one piece of the picture, and{' '}
-          <strong>none of them sees the others</strong>. Individually everything looks routine.
+          Each system feeds a specialist agent.{' '}
           {populated
-            ? ' Run the reconciliation loop to correlate them into one world model and surface the cross-silo collision none can detect alone.'
-            : ' Upload a scenario file to populate the silos, then run the reconciliation loop.'}
+            ? 'Run the reconciliation loop to correlate all five feeds into one world model and surface the cross-domain collision none can detect alone.'
+            : 'Upload a scenario file to load the feeds, then run the reconciliation loop to correlate them across all five domains simultaneously.'}
         </p>
       </div>
 
       <div className="silo-grid">
-        {SILO_SHELLS.map((shell) => {
-          const d = data[shell.key]
+        {SOURCE_FEEDS.map((feed) => {
+          const d = data[feed.key]
           return (
-            <div key={shell.key} className={`silo ${!populated ? 'silo-empty' : ''}`}>
+            <div key={feed.key} className={`silo ${!populated ? 'silo-empty' : ''}`}>
               <div className="silo-head">
-                <span className="agent-icon"><Icon name={shell.icon} /></span>
+                <span className="agent-icon"><Icon name={feed.icon} /></span>
                 <div>
-                  <h3>{shell.name}</h3>
-                  <span className="silo-sub">{shell.sub}</span>
+                  <h3>{feed.name}</h3>
+                  <span className="silo-sub">{feed.sub}</span>
                 </div>
               </div>
 
@@ -100,7 +99,7 @@ export function SourcesPanel({ sources, populated = true }: { sources: Sources; 
                 </>
               ) : (
                 <div className="silo-awaiting">
-                  Awaiting data file upload
+                  Awaiting feed data
                 </div>
               )}
             </div>
