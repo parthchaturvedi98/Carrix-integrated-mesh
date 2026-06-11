@@ -1,0 +1,2 @@
+vessel_id,terminal,discharge_window,discharge_count,confirmed
+V-KESTREL,T20,16:00-20:00,120,true

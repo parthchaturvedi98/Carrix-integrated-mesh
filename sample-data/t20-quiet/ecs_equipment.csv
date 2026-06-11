@@ -1,0 +1,5 @@
+id,type,utilization_pct,status
+RTG-3,Yard crane,55,busy
+RTG-4,Yard crane,48,normal
+RS-5,Reach stacker,72,busy
+RS-6,Reach stacker,65,normal

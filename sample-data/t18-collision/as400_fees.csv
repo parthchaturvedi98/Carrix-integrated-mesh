@@ -1,0 +1,4 @@
+code,unit,amount,currency
+DEMURRAGE,container/day,45.00,USD
+STORAGE,container/day,12.00,USD
+CONGESTION_SURCHARGE,container,8.00,USD

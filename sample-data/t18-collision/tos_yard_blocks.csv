@@ -1,0 +1,7 @@
+block,terminal,capacity,occupied
+T18-A,T18,120,110
+T18-B,T18,120,108
+T18-C,T18,120,95
+T18-D,T18,200,60
+T20-A,T20,200,40
+T20-B,T20,150,40

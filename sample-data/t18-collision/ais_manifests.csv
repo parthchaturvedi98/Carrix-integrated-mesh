@@ -1,0 +1,3 @@
+vessel_id,terminal,discharge_window,discharge_count,confirmed
+V-MERIDIAN,T18,12:00-16:00,400,false
+V-KESTREL,T20,16:00-20:00,120,true

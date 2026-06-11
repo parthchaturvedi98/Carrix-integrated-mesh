@@ -1,0 +1,5 @@
+block,terminal,capacity,occupied
+T20-A,T20,200,40
+T20-B,T20,150,40
+T20-C,T20,180,30
+T20-D,T20,160,25

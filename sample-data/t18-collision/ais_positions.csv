@@ -1,0 +1,3 @@
+vessel_id,name,status,destination_terminal,eta
+V-MERIDIAN,MV Meridian,inbound,T18,2026-06-11T12:30:00Z
+V-KESTREL,MV Kestrel,anchored,T20,2026-06-11T18:00:00Z

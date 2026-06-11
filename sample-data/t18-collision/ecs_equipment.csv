@@ -1,0 +1,5 @@
+id,type,utilization_pct,status
+RTG-1,Yard crane,110,overloaded
+RTG-2,Yard crane,98,busy
+RS-3,Reach stacker,34,idle
+RS-4,Reach stacker,28,idle

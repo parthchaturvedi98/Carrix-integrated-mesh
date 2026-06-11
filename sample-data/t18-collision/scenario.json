@@ -1,0 +1,60 @@
+{
+  "tos": {
+    "yard_blocks": [
+      { "block": "T18-A", "terminal": "T18", "capacity": 120, "occupied": 110 },
+      { "block": "T18-B", "terminal": "T18", "capacity": 120, "occupied": 108 },
+      { "block": "T18-C", "terminal": "T18", "capacity": 120, "occupied": 95 },
+      { "block": "T18-D", "terminal": "T18", "capacity": 200, "occupied": 60 },
+      { "block": "T20-A", "terminal": "T20", "capacity": 200, "occupied": 40 },
+      { "block": "T20-B", "terminal": "T20", "capacity": 150, "occupied": 40 }
+    ],
+    "storage_plan": {
+      "terminal": "T18",
+      "window": "12:00-16:00",
+      "vessel_id": "V-MERIDIAN",
+      "sequence": [
+        { "block": "T18-A", "containers": 160 },
+        { "block": "T18-B", "containers": 140 },
+        { "block": "T18-C", "containers": 100 }
+      ]
+    }
+  },
+  "emodal": {
+    "appointments": [
+      { "window": "08:00-12:00", "terminal": "T18", "slots": 80, "booked": 40, "demand": 45 },
+      { "window": "12:00-16:00", "terminal": "T18", "slots": 80, "booked": 78, "demand": 150 },
+      { "window": "16:00-20:00", "terminal": "T18", "slots": 80, "booked": 30, "demand": 35 }
+    ]
+  },
+  "ais": {
+    "positions": [
+      { "vessel_id": "V-MERIDIAN", "name": "MV Meridian", "status": "inbound", "destination_terminal": "T18", "eta": "2026-06-11T12:30:00Z" },
+      { "vessel_id": "V-KESTREL",  "name": "MV Kestrel",  "status": "anchored", "destination_terminal": "T20", "eta": "2026-06-11T18:00:00Z" }
+    ],
+    "manifests": [
+      { "vessel_id": "V-MERIDIAN", "terminal": "T18", "discharge_window": "12:00-16:00", "discharge_count": 400, "confirmed": false },
+      { "vessel_id": "V-KESTREL",  "terminal": "T20", "discharge_window": "16:00-20:00", "discharge_count": 120, "confirmed": true }
+    ]
+  },
+  "as400": {
+    "fee_schedule": [
+      { "code": "DEMURRAGE",           "unit": "container/day", "amount": 45.00, "currency": "USD" },
+      { "code": "STORAGE",             "unit": "container/day", "amount": 12.00, "currency": "USD" },
+      { "code": "CONGESTION_SURCHARGE","unit": "container",     "amount":  8.00, "currency": "USD" }
+    ]
+  },
+  "ecs": {
+    "equipment": [
+      { "id": "RTG-1", "type": "Yard crane",    "utilization_pct": 110, "status": "overloaded" },
+      { "id": "RTG-2", "type": "Yard crane",    "utilization_pct": 98,  "status": "busy" },
+      { "id": "RS-3",  "type": "Reach stacker", "utilization_pct": 34,  "status": "idle" },
+      { "id": "RS-4",  "type": "Reach stacker", "utilization_pct": 28,  "status": "idle" }
+    ],
+    "movement": {
+      "total_moves": 496,
+      "unnecessary_shuffles": 96,
+      "avg_utilization_pct": 68,
+      "cycle_time_min": 42
+    }
+  }
+}
