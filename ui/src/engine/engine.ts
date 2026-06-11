@@ -197,6 +197,16 @@ function view(run: RunState): RunView {
   }
 }
 
+// Derive the active terminal + focus window from the current state rather than
+// a hardcoded constant, so uploading a different scenario updates the header + tiles.
+function activeScenario(): { terminal: string; focus_window: string } {
+  // Use the manifest with the highest discharge count as the "focus" vessel
+  const manifests = state.ais.manifests
+  if (!manifests.length) return { terminal: M.terminal, focus_window: M.focus_window }
+  const focus = manifests.reduce((best, m) => m.discharge_count > best.discharge_count ? m : best, manifests[0])
+  return { terminal: focus.terminal, focus_window: focus.discharge_window }
+}
+
 // ---- public engine API ------------------------------------------------------
 export const engine = {
   status(): Status {
@@ -204,7 +214,7 @@ export const engine = {
       llm_mode: 'fallback',
       orchestrator_model: 'deterministic engine (offline)',
       worker_model: 'deterministic engine (offline)',
-      scenario: { terminal: M.terminal, focus_window: M.focus_window },
+      scenario: activeScenario(),
     }
   },
 
@@ -215,7 +225,7 @@ export const engine = {
       ais: { positions: structuredClone(state.ais.positions), manifests: structuredClone(state.ais.manifests) },
       as400: { fee_schedule: structuredClone(state.as400.fee_schedule) },
       ecs: { equipment: structuredClone(state.ecs.equipment), movement: structuredClone(state.ecs.movement) },
-      scenario: { terminal: M.terminal, focus_window: M.focus_window },
+      scenario: activeScenario(),
     }
   },
 
