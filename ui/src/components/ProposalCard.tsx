@@ -3,12 +3,24 @@ import { AGENT_ICON, Icon } from './icons'
 
 interface Props {
   p: AgentProposal
-  /** current local decision for this agent while awaiting commit */
   decision?: Decision
-  /** set the local decision; absent when controls should not show (running/done) */
   onDecide?: (agent: string, decision: Decision) => void
-  /** persisted outcome after commit ('approved' | 'rejected') */
   outcome?: 'approved' | 'rejected'
+}
+
+function ConfidenceBar({ score }: { score: number }) {
+  const color = score >= 85 ? 'var(--ok)' : score >= 65 ? '#f59e0b' : 'var(--alert)'
+  return (
+    <div className="conf-wrap" title={`Resolution confidence: ${score}%`}>
+      <div className="conf-label">
+        <span>Confidence</span>
+        <span className="conf-pct" style={{ color }}>{score}%</span>
+      </div>
+      <div className="conf-track">
+        <div className="conf-fill" style={{ width: `${score}%`, background: color }} />
+      </div>
+    </div>
+  )
 }
 
 export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
@@ -30,14 +42,20 @@ export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
           <span className="pill pill-action">{p.proposed_actions.length} action</span>
         )}
       </header>
+
       {p.use_case && <div className="uc-chip">{p.use_case}</div>}
+
       <p className="findings">{p.findings}</p>
       <p className="rationale"><strong>Why:</strong> {p.rationale}</p>
+
+      {p.confidence != null && <ConfidenceBar score={p.confidence} />}
+
       {!!p.targets?.length && (
         <div className="uc-meta">
           <div className="uc-line"><span className="uc-key">Targets</span> {p.targets.join(' · ')}</div>
         </div>
       )}
+
       {p.proposed_actions.map((a, i) => (
         <div key={i} className="action">
           <code className="tool">{a.tool}</code>
@@ -45,6 +63,7 @@ export function ProposalCard({ p, decision, onDecide, outcome }: Props) {
           <span className="action-desc">{a.description}</span>
         </div>
       ))}
+
       <footer className="evidence">
         {p.evidence_ids.map((e) => (
           <span key={e} className="chip chip-evi">{e}</span>

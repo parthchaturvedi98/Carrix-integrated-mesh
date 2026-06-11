@@ -19,6 +19,7 @@ export interface AgentProposal {
   use_case?: string
   targets?: string[]      // KPI names this agent moves
   benefits?: string[]     // estimated-benefit lines from the client slide
+  confidence?: number     // 0-100 resolution confidence score
 }
 
 export interface KpiDelta {

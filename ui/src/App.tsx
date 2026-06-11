@@ -227,7 +227,7 @@ export default function App() {
               onStarted={onMedallionStarted}
               onLoaded={onMedallionLoaded}
             />
-            {sourcesReady && sources && <SourcesPanel sources={sources} />}
+            {sources && <SourcesPanel sources={sources} populated={sourcesReady} />}
           </div>
         </div>
       )}

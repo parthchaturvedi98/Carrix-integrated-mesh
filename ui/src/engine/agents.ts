@@ -48,6 +48,15 @@ export function yardProposal(s: Snapshot): AgentProposal {
     ? `Current storage plan overflows ${overflow.length} block(s): ` +
       overflow.map((o) => `${o.block} ${o.overflow} over capacity`).join('; ') + '.'
     : 'Storage plan is within capacity.'
+  // Confidence: high when relief blocks have clear headroom to absorb overflow
+  const reliefHeadroom = s.yard_blocks
+    .filter((b) => !overflow.find((o) => o.block === b.block))
+    .reduce((sum, b) => sum + (b.capacity - b.occupied), 0)
+  const totalOverflow = overflow.reduce((sum, o) => sum + o.overflow, 0)
+  const confidence = overflow.length === 0 ? 95
+    : reliefHeadroom >= totalOverflow * 1.5 ? 91
+    : reliefHeadroom >= totalOverflow ? 82
+    : 68
   return {
     agent: 'Yard',
     findings,
@@ -61,6 +70,7 @@ export function yardProposal(s: Snapshot): AgentProposal {
     use_case: UC.vessel,
     targets: ['Yard rehandles / non-revenue moves', 'Yard productivity', 'Planned vs actual moves'],
     benefits: BENEFITS[UC.vessel],
+    confidence,
   }
 }
 
@@ -69,6 +79,14 @@ export function gateProposal(s: Snapshot): AgentProposal {
   const surge = (appt?.demand ?? 0) - (appt?.slots ?? 0)
   const updates = A.staggerSlots(s)
   const hasSurge = surge > 0 && updates.length > 0
+  // Confidence: based on how much adjacent window slack can absorb the overflow
+  const adjacentSlack = s.appointments
+    .filter((a) => a.terminal === M.terminal && a.window !== M.focus_window)
+    .reduce((sum, a) => sum + Math.max(0, a.slots - a.demand), 0)
+  const confidence = !hasSurge ? 96
+    : adjacentSlack >= surge ? 88
+    : adjacentSlack >= surge * 0.6 ? 76
+    : 62
   return {
     agent: 'Gate',
     findings: hasSurge
@@ -84,6 +102,7 @@ export function gateProposal(s: Snapshot): AgentProposal {
     use_case: UC.inout,
     targets: ['Truck wait / gate wait time', 'Appointment SLA / cut-off adherence'],
     benefits: BENEFITS[UC.inout],
+    confidence,
   }
 }
 
@@ -98,6 +117,10 @@ export function vesselProposal(s: Snapshot): AgentProposal {
       evidence_ids: ['ais.positions', 'ais.manifests'],
     }
   }
+  // Confidence: lower if vessel is unconfirmed or discharge count is very large
+  const confidence = v.confirmed ? 94
+    : v.discharge_count > 350 ? 79
+    : 85
   return {
     agent: 'Vessel',
     findings:
@@ -113,6 +136,7 @@ export function vesselProposal(s: Snapshot): AgentProposal {
     use_case: UC.vessel,
     targets: ['Vessel turnaround time'],
     benefits: BENEFITS[UC.vessel],
+    confidence,
   }
 }
 
@@ -122,6 +146,12 @@ export function movementProposal(s: Snapshot): AgentProposal {
   const idle = equip.filter((e) => e.utilization_pct < 40).length
   const optimized = mv ? A.optimizeMovement(mv) : undefined
   const hasWork = !!mv && (mv.unnecessary_shuffles > 0 || idle > 0)
+  // Confidence: higher when shuffle count and imbalance are clearly measurable
+  const shuffleRatio = mv ? mv.unnecessary_shuffles / Math.max(mv.total_moves, 1) : 0
+  const confidence = !mv ? 55
+    : idle > 0 && shuffleRatio > 0.1 ? 87
+    : shuffleRatio > 0.05 ? 81
+    : 74
   return {
     agent: 'Movement',
     findings: mv
@@ -139,6 +169,7 @@ export function movementProposal(s: Snapshot): AgentProposal {
     use_case: UC.movement,
     targets: ['Container moves per lift', 'Equipment utilization', 'Cycle time'],
     benefits: BENEFITS[UC.movement],
+    confidence,
   }
 }
 
@@ -159,6 +190,7 @@ export function feesProposal(s: Snapshot): AgentProposal {
     use_case: UC.cost,
     targets: ['Congestion surcharge', 'Demurrage risk'],
     benefits: BENEFITS[UC.cost],
+    confidence: f.overflow_containers > 0 ? 97 : 92, // fee computation is deterministic
   }
 }
 
