@@ -31,7 +31,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('dashboard')
   const [decisions, setDecisions] = useState<Record<string, Decision>>({})
   const [error, setError] = useState<string | null>(null)
-  const [sourcesReady, setSourcesReady] = useState(true) // true = seeded, false while DQ agent runs
+  const [sourcesReady, setSourcesReady] = useState(false) // false until DQ agent approves a file upload
   const unsub = useRef<(() => void) | null>(null)
 
   const loadSources = useCallback(() => {
