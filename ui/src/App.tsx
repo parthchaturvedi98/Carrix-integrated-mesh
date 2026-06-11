@@ -5,6 +5,8 @@ import { AgentStrip } from './components/AgentStrip'
 import { ConflictPanel } from './components/ConflictPanel'
 import { ControlTowerPanel } from './components/ControlTowerPanel'
 import { ForecastPanel } from './components/ForecastPanel'
+import { MedallionUploader } from './components/MedallionUploader'
+import { MedallionReportPanel } from './components/MedallionReport'
 import { OrchestratorBar } from './components/OrchestratorBar'
 import { OutcomesPanel } from './components/OutcomesPanel'
 import { Icon } from './components/icons'
@@ -12,6 +14,7 @@ import { ProposalCard } from './components/ProposalCard'
 import { SourcesPanel } from './components/SourcesPanel'
 import { TracePanel } from './components/TracePanel'
 import { YardView } from './components/YardView'
+import type { MedallionReport } from './engine/medallion'
 import type { AgentProposal, Conflict, Decision, RunView, Sources, Status, TraceEvent } from './types'
 
 const TwinScene = lazy(() => import('./components/TwinScene'))
@@ -29,6 +32,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('dashboard')
   const [decisions, setDecisions] = useState<Record<string, Decision>>({})
   const [error, setError] = useState<string | null>(null)
+  const [medallionReport, setMedallionReport] = useState<MedallionReport | null>(null)
   const unsub = useRef<(() => void) | null>(null)
 
   const loadSources = useCallback(() => {
@@ -97,10 +101,19 @@ export default function App() {
       setTraces([])
       setDecisions({})
       setPhase('idle')
+      setMedallionReport(null)
       loadSources()
     } catch (e) {
       setError(String(e))
     }
+  }
+
+  const onMedallionLoaded = async (report: MedallionReport) => {
+    setMedallionReport(report)
+    // Push gold-layer state into the engine then refresh the sources panel
+    const extApi = api as typeof api & { loadScenario?: (raw: unknown) => Promise<unknown> }
+    if (extApi.loadScenario) await extApi.loadScenario(report.gold.state)
+    loadSources()
   }
 
   // Derive conflict + proposals from the live trace stream so they appear the moment each
@@ -205,7 +218,16 @@ export default function App() {
           : <div className="twin-loading">Run the loop or reset to load the yard.</div>
       )}
 
-      {tab === 'dashboard' && phase === 'idle' && sources && <SourcesPanel sources={sources} />}
+      {tab === 'dashboard' && phase === 'idle' && (
+        <div className="idle-layout">
+          <div className="idle-col-main">
+            {medallionReport
+              ? <MedallionReportPanel report={medallionReport} onDismiss={() => setMedallionReport(null)} />
+              : <MedallionUploader onLoaded={onMedallionLoaded} />}
+            {sources && <SourcesPanel sources={sources} />}
+          </div>
+        </div>
+      )}
 
       {tab === 'dashboard' && phase !== 'idle' && (
         <main className="grid">

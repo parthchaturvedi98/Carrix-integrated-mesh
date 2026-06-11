@@ -279,6 +279,13 @@ export const engine = {
     return { rejected: true, view: view(run) }
   },
 
+  // Load a gold-layer scenario produced by the medallion pipeline.
+  // Replaces the live mock state without resetting run history.
+  loadScenario(raw: RawMockState): void {
+    state = JSON.parse(JSON.stringify(raw)) as RawMockState
+    runs.clear()
+  },
+
   subscribe(cid: string, onEvent: (e: TraceEvent) => void, onDone: () => void): () => void {
     const run = runs.get(cid)
     if (!run) { onDone(); return () => {} }

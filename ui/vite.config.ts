@@ -11,7 +11,7 @@ export default defineConfig(({ command }) => ({
   base: command === 'build' ? './' : '/',
   plugins: [react()],
   server: {
-    port: 5173,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
     proxy: {
       '/api': { target: backend, changeOrigin: true },
       '/tos': { target: backend, changeOrigin: true },

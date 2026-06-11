@@ -1,4 +1,5 @@
 import { engine } from './engine/engine'
+import type { RawMockState } from './engine/scenario'
 import type { RunView, Sources, Status, TraceEvent } from './types'
 
 // Two backends for the same UI:
@@ -57,6 +58,7 @@ const engineApi = {
   traces: async (_id: string) => ({ traces: [] as TraceEvent[] }),
   reject: async (pid: string) => engine.reject(pid),
   commit: async (pid: string, decisions: Record<string, string>) => ({ correlation_id: engine.commit(pid, decisions) }),
+  loadScenario: async (raw: RawMockState) => { engine.loadScenario(raw); return { ok: true } },
 }
 
 function engineStream(id: string, onEvent: (e: TraceEvent) => void, onDone?: () => void): () => void {
